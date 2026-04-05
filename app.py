@@ -12,7 +12,9 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-
+@app.route("/privacidad", methods=["GET"])
+def privacidad():
+    return render_template("privacidad.html")
 @app.route("/", methods=["GET"])
 def home():
     return render_template("index.html")
