@@ -3,3 +3,5 @@ veraxia.db
 __pycache__/ 
 *.pyc 
 .env.example 
+credentials.json
+meta-micron-*.json
