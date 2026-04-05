@@ -2,7 +2,8 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from dotenv import load_dotenv
 from ai_engine import generate_response
-from memory import is_within_limit, get_daily_count, clear_context
+from memory import is_within_limit, get_daily_count, clear_context 
+from sheets import registrar_conversacion
 from config import FREE_DAILY_LIMIT
 import uuid
 
@@ -40,7 +41,8 @@ def chat():
         }), 429
 
     try:
-        respuesta = generate_response(user_id, user_message)
+        respuesta = generate_response(user_id, user_message) 
+        registrar_conversacion(user_id, user_message, respuesta)
         used = get_daily_count(user_id)
         remaining = max(0, FREE_DAILY_LIMIT - used)
         return jsonify({
