@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activar Plan — VeraxIA</title>
+<style>
+  body { font-family: 'Outfit', sans-serif; background: #060b18; color: #f0ece0; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+  .card { background: rgba(6,11,24,0.95); border: 1px solid rgba(201,168,76,0.2); border-radius: 16px; padding: 2.5rem; max-width: 420px; width: 90%; text-align: center; }
+  h1 { font-size: 1.8rem; color: #c9a84c; margin-bottom: 0.5rem; }
+  p { color: rgba(240,236,224,0.7); margin-bottom: 2rem; font-size: 0.95rem; }
+  input { width: 100%; padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid rgba(201,168,76,0.3); background: rgba(255,255,255,0.05); color: #f0ece0; font-size: 1rem; box-sizing: border-box; margin-bottom: 1rem; }
+  button { width: 100%; padding: 0.85rem; background: #c9a84c; color: #060b18; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+  button:hover { background: #e8d49a; }
+  .msg { margin-top: 1rem; font-size: 0.9rem; min-height: 1.5rem; }
+  .ok { color: #4afd9a; }
+  .err { color: #ff6b6b; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>✨ Activar tu plan</h1>
+  <p>Ingresa tu email y tu user_id para activar tu acceso.</p>
+  <input type="email" id="email" placeholder="Tu email" />
+  <input type="text" id="userid" placeholder="Tu user_id (ej: web_abc12345)" />
+  <button onclick="activar()">Activar ahora</button>
+  <div class="msg" id="msg"></div>
+</div>
+<script>
+async function activar() {
+  const email = document.getElementById('email').value.trim();
+  const userid = document.getElementById('userid').value.trim();
+  const msg = document.getElementById('msg');
+  if (!email || !userid) { msg.className='msg err'; msg.textContent='Completa ambos campos.'; return; }
+  msg.className='msg'; msg.textContent='Activando...';
+  const res = await fetch('/activar', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({email, user_id: userid})
+  });
+  const data = await res.json();
+  if (res.ok) { msg.className='msg ok'; msg.textContent='✅ ' + data.message; }
+  else { msg.className='msg err'; msg.textContent='❌ ' + data.error; }
+}
+</script>
+</body>
+</html>
