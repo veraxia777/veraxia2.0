@@ -52,4 +52,23 @@ def registrar_pago(user_id, email, plan, metodo, notas=""):
             user_id, email, plan, "activo", metodo, notas
         ])
     except Exception as e:
-        print(f"Error registrar_pago: {e}")
+        print(f"Error registrar_pago: {e}")     
+def get_plan_usuario(user_id):
+    try:
+        sh = get_sheet()
+        hoja = sh.worksheet("pagos")
+        registros = hoja.get_all_records()
+        for fila in reversed(registros):
+            if fila["user_id"] == user_id and fila["estado"] == "activo":
+                vencimiento = fila.get("vencimiento", "")
+                if vencimiento:
+                    from datetime import datetime
+                    venc = datetime.strptime(vencimiento, "%Y-%m-%d")
+                    if venc >= datetime.now():
+                        return fila["plan"]
+                else:
+                    return fila["plan"]
+        return "libre"
+    except Exception as e:
+        print(f"Error get_plan_usuario: {e}")
+        return "libre"
