@@ -312,71 +312,13 @@
     document.getElementById('chat-section').style.display = 'none';
     allSections().forEach(el => el.style.display = '');
     window.scrollTo(0,0);
-function openChat() {
+  }
+
+  function openChat() {
     allSections().forEach(el => el.style.display = 'none');
     const chat = document.getElementById('chat-section');
     chat.style.display = 'flex';
     chat.classList.add('active');
-    const emailGuardado = localStorage.getItem('veraxia_email');
-    if (!emailGuardado) {
-      showEmailModal();
-    } else {
-      if (!document.getElementById('chat-messages').children.length) addWelcome();
-    }
-  }
-
-function showEmailModal() {
-    const modal = document.createElement('div');
-    modal.id = 'email-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(6,11,24,.95);display:flex;align-items:center;justify-content:center;z-index:999;';
-    modal.innerHTML = `
-      <div style="background:#0a0e1a;border:1px solid rgba(201,168,76,.3);border-radius:16px;padding:2.5rem;max-width:400px;width:90%;text-align:center;">
-        <h2 style="color:#c9a84c;font-family:'Cormorant Garamond',serif;font-size:1.8rem;margin-bottom:.5rem;">Bienvenida</h2>
-        <p style="color:rgba(240,236,224,.7);font-size:.9rem;margin-bottom:1.5rem;">Ingresa tu email para continuar y no perder tu conversación.</p>
-        <input type="email" id="email-input-modal" placeholder="tu@email.com" style="width:100%;padding:.85rem;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:#f0ece0;font-size:1rem;box-sizing:border-box;margin-bottom:1rem;">
-        <button onclick="guardarEmail()" style="width:100%;padding:.85rem;background:#c9a84c;color:#060b18;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;">Continuar</button>
-      </div>`;
-    document.body.appendChild(modal);
-  }
-
-function guardarEmail() {
-    const email = document.getElementById('email-input-modal').value.trim();
-    if (!email || !email.includes('@')) {
-      alert('Por favor ingresa un email válido.');
-      return;
-    }
-    localStorage.setItem('veraxia_email', email);
-    userId = email;
-    localStorage.setItem('veraxia_uid', email);
-    document.getElementById('email-modal').remove();
-    if (!document.getElementById('chat-messages').children.length) addWelcome();
-  }
-  }
-
-function showEmailModal() {
-    const modal = document.createElement('div');
-    modal.id = 'email-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(6,11,24,.95);display:flex;align-items:center;justify-content:center;z-index:999;';
-    modal.innerHTML = `
-      <div style="background:#0a0e1a;border:1px solid rgba(201,168,76,.3);border-radius:16px;padding:2.5rem;max-width:400px;width:90%;text-align:center;">
-        <h2 style="color:#c9a84c;font-family:'Cormorant Garamond',serif;font-size:1.8rem;margin-bottom:.5rem;">Bienvenida</h2>
-        <p style="color:rgba(240,236,224,.7);font-size:.9rem;margin-bottom:1.5rem;">Ingresa tu email para continuar y no perder tu conversación.</p>
-        <input type="email" id="email-input-modal" placeholder="tu@email.com" style="width:100%;padding:.85rem;border-radius:8px;border:1px solid rgba(201,168,76,.3);background:rgba(255,255,255,.05);color:#f0ece0;font-size:1rem;box-sizing:border-box;margin-bottom:1rem;">
-        <button onclick="guardarEmail()" style="width:100%;padding:.85rem;background:#c9a84c;color:#060b18;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;">Continuar</button>
-      </div>`;
-    document.body.appendChild(modal);
-  }
-
-function guardarEmail() {
-    const email = document.getElementById('email-input-modal').value.trim();
-    if (!email || !email.includes('@')) {
-      alert('Por favor ingresa un email válido.');
-      return;
-    }
-    localStorage.setItem('veraxia_email', email);
-    userId = email;
-    localStorage.setItem('veraxia_uid', email);
-    document.getElementById('email-modal').remove();
     if (!document.getElementById('chat-messages').children.length) addWelcome();
   }
 
