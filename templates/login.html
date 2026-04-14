@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>VeraxIA - Login</title>
+  <style>
+    body { font-family: sans-serif; background: #0d0d0d; color: #eee; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .box { background: #1a1a1a; padding: 2rem; border-radius: 12px; width: 320px; }
+    h2 { text-align: center; color: #c084fc; }
+    input { width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; border: 1px solid #444; background: #111; color: #eee; box-sizing: border-box; }
+    button { width: 100%; padding: 10px; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+    button:hover { background: #6d28d9; }
+    .error { color: #f87171; text-align: center; margin-top: 8px; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>🤍 VeraxIA Admin</h2>
+    <form method="POST" action="/login">
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="password" name="password" placeholder="Contraseña" required>
+      <button type="submit">Entrar</button>
+    </form>
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
+  </div>
+</body>
+</html>
