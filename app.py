@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, session, redirect, url_for
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for, make_response
 from flask_cors import CORS
 from dotenv import load_dotenv
 from ai_engine import generate_response
@@ -104,9 +104,17 @@ def registro():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    data = request.get_json()
-    email = data.get("email", "").strip().lower()
-    password = data.get("password", "").strip()
+    if request.method == "GET":
+        return render_template("login.html")
+    
+    # POST — acepta form data (HTML) o JSON (API)
+    if request.is_json:
+        data = request.get_json()
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "").strip()
+    else:
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "").strip()
 
     cursor.execute(
         "SELECT email, plan FROM usuarios WHERE email=? AND password_hash=?",
@@ -114,14 +122,20 @@ def login():
     )
     row = cursor.fetchone()
     if not row:
-        return jsonify({"error": "Email o contraseña incorrectos"}), 401
+        if request.is_json:
+            return jsonify({"error": "Email o contraseña incorrectos"}), 401
+        return render_template("login.html", error="Email o contraseña incorrectos")
 
     cursor.execute("UPDATE usuarios SET ultimo_acceso=? WHERE email=?",
                    (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), email))
     conn.commit()
-
     token = crear_token(email)
-    resp = jsonify({"ok": True, "plan": row[1], "email": email})
+
+    if request.is_json:
+        resp = jsonify({"ok": True, "plan": row[1], "email": email})
+    else:
+        resp = make_response(redirect("/admin"))
+
     resp.set_cookie("vx_token", token, max_age=30*24*3600, httponly=True, samesite="Lax")
     return resp
 
