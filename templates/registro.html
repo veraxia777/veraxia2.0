@@ -45,6 +45,32 @@
         err.style.display = "block";
       }
     });
-  </script>
+  <script>
+  document.getElementById("form-registro").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const err = document.getElementById("error-msg");
+    
+    try {
+      const res = await fetch("/registro", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({email, password})
+      });
+      const data = await res.json();
+      if (data.ok) {
+        window.location.href = "/";
+      } else {
+        err.textContent = data.error || "Error desconocido";
+        err.style.display = "block";
+      }
+    } catch(e) {
+      err.textContent = "Error de conexión: " + e.message;
+      err.style.display = "block";
+    }
+  });
+</script>
+
 </body>
 </html>
