@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VeraxIA — Panel Daniela</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: system-ui, sans-serif; background:#060b18; color:#f0ece0; min-height:100vh; }
+  .header { background:#0a0e1a; border-bottom:1px solid rgba(201,168,76,0.2); padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center; }
+  .logo { font-size:1.2rem; color:#c9a84c; font-weight:500; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; padding:2rem; }
+  .card { background:#0a0e1a; border:1px solid rgba(201,168,76,0.15); border-radius:10px; padding:1.25rem; }
+  .card-num { font-size:2rem; font-weight:600; color:#c9a84c; }
+  .card-label { font-size:0.75rem; color:rgba(240,236,224,0.5); margin-top:4px; text-transform:uppercase; letter-spacing:0.08em; }
+  .section { padding:0 2rem 2rem; }
+  .section-title { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:rgba(240,236,224,0.4); margin-bottom:1rem; }
+  table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+  th { text-align:left; padding:8px 12px; color:rgba(240,236,224,0.4); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; border-bottom:1px solid rgba(201,168,76,0.1); }
+  td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); color:rgba(240,236,224,0.8); }
+  .badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:0.7rem; font-weight:500; }
+  .badge-libre { background:rgba(255,255,255,0.08); color:rgba(240,236,224,0.5); }
+  .badge-alma { background:rgba(201,168,76,0.15); color:#c9a84c; }
+  .badge-pro { background:rgba(74,127,212,0.15); color:#4a7fd4; }
+  .upgrade-form { background:#0a0e1a; border:1px solid rgba(201,168,76,0.15); border-radius:10px; padding:1.5rem; margin:0 2rem 2rem; }
+  .upgrade-form h3 { font-size:0.85rem; color:#c9a84c; margin-bottom:1rem; }
+  .form-row { display:flex; gap:10px; flex-wrap:wrap; }
+  input, select { background:rgba(240,236,224,0.05); border:1px solid rgba(201,168,76,0.2); border-radius:6px; padding:8px 12px; color:#f0ece0; font-size:0.85rem; outline:none; }
+  input { flex:1; min-width:200px; }
+  button { background:#c9a84c; color:#060b18; border:none; border-radius:6px; padding:8px 20px; font-size:0.85rem; font-weight:500; cursor:pointer; }
+  button:hover { background:#e8d49a; }
+  .msg { font-size:0.8rem; margin-top:8px; color:#4a7fd4; }
+  .refresh { background:transparent; border:1px solid rgba(201,168,76,0.3); color:#c9a84c; font-size:0.75rem; padding:6px 14px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">VeraxIA · Panel Daniela</div>
+  <button class="refresh" onclick="cargar()">Actualizar</button>
+</div>
+
+<div class="grid" id="stats-grid">
+  <div class="card"><div class="card-num" id="s-total">—</div><div class="card-label">Usuarios totales</div></div>
+  <div class="card"><div class="card-num" id="s-nuevos">—</div><div class="card-label">Nuevos hoy</div></div>
+  <div class="card"><div class="card-num" id="s-pagos">—</div><div class="card-label">Usuarios de pago</div></div>
+  <div class="card"><div class="card-num" id="s-mensajes">—</div><div class="card-label">Mensajes hoy</div></div>
+  <div class="card"><div class="card-num" id="s-ingresos">—</div><div class="card-label">Ingresos totales USD</div></div>
+</div>
+
+<div class="upgrade-form">
+  <h3>Activar plan manualmente</h3>
+  <div class="form-row">
+    <input type="email" id="upg-email" placeholder="Email del usuario"/>
+    <select id="upg-plan">
+      <option value="alma">Alma ($7)</option>
+      <option value="alma_pro">Alma Pro ($15)</option>
+      <option value="libre">Libre</option>
+    </select>
+    <input type="number" id="upg-monto" placeholder="Monto USD" style="max-width:120px;" value="7"/>
+    <input type="text" id="upg-metodo" placeholder="Método (MercadoPago, etc)" style="max-width:180px;"/>
+    <button onclick="activarPlan()">Activar</button>
+  </div>
+  <div class="msg" id="upg-msg"></div>
+</div>
+
+<div class="section">
+  <div class="section-title">Últimos usuarios</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Plan</th>
+        <th>Mensajes</th>
+        <th>Último acceso</th>
+        <th>Registro</th>
+      </tr>
+    </thead>
+    <tbody id="tabla-usuarios"></tbody>
+  </table>
+</div>
+
+<script>
+async function cargar() {
+  const res = await fetch('/admin/stats');
+  if (res.status === 403) { document.body.innerHTML = '<p style="padding:2rem;color:#e24b4a;">No autorizado</p>'; return; }
+  const d = await res.json();
+  document.getElementById('s-total').textContent = d.total_usuarios;
+  document.getElementById('s-nuevos').textContent = d.nuevos_hoy;
+  document.getElementById('s-pagos').textContent = d.usuarios_pagos;
+  document.getElementById('s-mensajes').textContent = d.mensajes_hoy;
+  document.getElementById('s-ingresos').textContent = '$' + d.ingresos_total_usd;
+
+  const tbody = document.getElementById('tabla-usuarios');
+  tbody.innerHTML = '';
+  d.ultimos_usuarios.forEach(u => {
+    const badge = u.plan === 'libre' ? 'badge-libre' : u.plan === 'alma_pro' ? 'badge-pro' : 'badge-alma';
+    tbody.innerHTML += `<tr>
+      <td>${u.email}</td>
+      <td><span class="badge ${badge}">${u.plan}</span></td>
+      <td>${u.mensajes}</td>
+      <td>${u.ultimo_acceso || '—'}</td>
+      <td>${u.registro || '—'}</td>
+    </tr>`;
+  });
+}
+
+async function activarPlan() {
+  const email = document.getElementById('upg-email').value;
+  const plan = document.getElementById('upg-plan').value;
+  const monto = document.getElementById('upg-monto').value;
+  const metodo = document.getElementById('upg-metodo').value || 'manual';
+  const msg = document.getElementById('upg-msg');
+  if (!email) { msg.textContent = 'Ingresa el email'; return; }
+  const res = await fetch('/admin/upgrade', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({email, plan, monto: parseFloat(monto), metodo})
+  });
+  const d = await res.json();
+  if (d.ok) { msg.textContent = `✅ Plan ${plan} activado para ${email}`; msg.style.color='#5DCAA5'; cargar(); }
+  else { msg.textContent = d.error; msg.style.color='#e24b4a'; }
+}
+
+cargar();
+setInterval(cargar, 60000);
+</script>
+</body>
+</html>

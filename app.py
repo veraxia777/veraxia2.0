@@ -1,23 +1,149 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for
 from flask_cors import CORS
 from dotenv import load_dotenv
 from ai_engine import generate_response
 from memory import is_within_limit, get_daily_count, clear_context
-from sheets import registrar_conversacion, get_plan_usuario
+from sheets import registrar_conversacion, registrar_usuario, registrar_pago
+from database import cursor, conn
 from config import FREE_DAILY_LIMIT
 import uuid
+import hashlib
+import secrets
+from datetime import datetime, timedelta
+import os
 
 load_dotenv()
+
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY", secrets.token_hex(32))
 CORS(app)
+
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "veraxia777520@gmail.com")
+
+# ─── HELPERS ───────────────────────────────────────────────
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def crear_token(email):
+    token = secrets.token_hex(32)
+    expira = datetime.now() + timedelta(days=30)
+    cursor.execute("INSERT INTO sesiones (token, email, expira) VALUES (?, ?, ?)",
+                   (token, email, expira.strftime("%Y-%m-%d %H:%M:%S")))
+    conn.commit()
+    return token
+
+def verificar_token(token):
+    if not token:
+        return None
+    cursor.execute("SELECT email, expira FROM sesiones WHERE token=?", (token,))
+    row = cursor.fetchone()
+    if not row:
+        return None
+    email, expira = row
+    if datetime.strptime(expira, "%Y-%m-%d %H:%M:%S") < datetime.now():
+        cursor.execute("DELETE FROM sesiones WHERE token=?", (token,))
+        conn.commit()
+        return None
+    return email
+
+def get_plan_db(email):
+    cursor.execute("SELECT plan FROM usuarios WHERE email=?", (email,))
+    row = cursor.fetchone()
+    return row[0] if row else "libre"
+
+def get_email_from_request():
+    token = request.cookies.get("vx_token") or request.headers.get("X-Token")
+    return verificar_token(token)
+
+# ─── RUTAS PÚBLICAS ────────────────────────────────────────
+
+@app.route("/", methods=["GET"])
+def home():
+    return render_template("index.html")
 
 @app.route("/privacidad", methods=["GET"])
 def privacidad():
     return render_template("privacidad.html")
 
-@app.route("/", methods=["GET"])
-def home():
-    return render_template("index.html")
+@app.route("/status", methods=["GET"])
+def status():
+    return jsonify({"status": "VeraxIA activa 🤍", "version": "2.1"})
+
+# ─── REGISTRO Y LOGIN ──────────────────────────────────────
+
+@app.route("/registro", methods=["POST"])
+def registro():
+    data = request.get_json()
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "").strip()
+
+    if not email or not password:
+        return jsonify({"error": "Email y contraseña requeridos"}), 400
+    if len(password) < 6:
+        return jsonify({"error": "Contraseña mínimo 6 caracteres"}), 400
+
+    try:
+        cursor.execute(
+            "INSERT INTO usuarios (email, password_hash) VALUES (?, ?)",
+            (email, hash_password(password))
+        )
+        conn.commit()
+        token = crear_token(email)
+        try:
+            registrar_usuario(email, email)
+        except:
+            pass
+        resp = jsonify({"ok": True, "plan": "libre", "email": email})
+        resp.set_cookie("vx_token", token, max_age=30*24*3600, httponly=True, samesite="Lax")
+        return resp
+    except Exception as e:
+        if "UNIQUE" in str(e):
+            return jsonify({"error": "Este email ya está registrado"}), 409
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "").strip()
+
+    cursor.execute(
+        "SELECT email, plan FROM usuarios WHERE email=? AND password_hash=?",
+        (email, hash_password(password))
+    )
+    row = cursor.fetchone()
+    if not row:
+        return jsonify({"error": "Email o contraseña incorrectos"}), 401
+
+    cursor.execute("UPDATE usuarios SET ultimo_acceso=? WHERE email=?",
+                   (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), email))
+    conn.commit()
+
+    token = crear_token(email)
+    resp = jsonify({"ok": True, "plan": row[1], "email": email})
+    resp.set_cookie("vx_token", token, max_age=30*24*3600, httponly=True, samesite="Lax")
+    return resp
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    token = request.cookies.get("vx_token")
+    if token:
+        cursor.execute("DELETE FROM sesiones WHERE token=?", (token,))
+        conn.commit()
+    resp = jsonify({"ok": True})
+    resp.delete_cookie("vx_token")
+    return resp
+
+@app.route("/yo", methods=["GET"])
+def yo():
+    email = get_email_from_request()
+    if not email:
+        return jsonify({"autenticado": False}), 200
+    plan = get_plan_db(email)
+    return jsonify({"autenticado": True, "email": email, "plan": plan})
+
+# ─── CHAT ──────────────────────────────────────────────────
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -29,29 +155,35 @@ def chat():
     if not user_message:
         return jsonify({"error": "Mensaje vacío"}), 400
 
-    user_id = data.get("user_id", f"web_{uuid.uuid4().hex[:8]}")
+    email = get_email_from_request()
 
-    # Verificar plan del usuario
-    plan = get_plan_usuario(user_id)
+    if email:
+        user_id = f"user_{email}"
+        plan = get_plan_db(email)
+    else:
+        user_id = data.get("user_id", f"web_{uuid.uuid4().hex[:8]}")
+        plan = "libre"
 
-    # Solo limitar si es plan libre
     if plan == "libre" and not is_within_limit(user_id):
         return jsonify({
             "error": "limite",
-            "message": f"Alcanzaste tus {FREE_DAILY_LIMIT} mensajes gratuitos de hoy 🌙 Vuelve mañana o activa tu plan Alma para continuar.",
+            "message": f"Alcanzaste tus {FREE_DAILY_LIMIT} mensajes gratuitos de hoy 🌙 Regístrate gratis o activa tu plan Alma para continuar.",
             "user_id": user_id,
             "remaining": 0
         }), 429
 
     try:
         respuesta = generate_response(user_id, user_message)
-        registrar_conversacion(user_id, user_message, respuesta)
+        try:
+            registrar_conversacion(user_id, user_message, respuesta)
+        except:
+            pass
 
-        if plan == "libre":
-            used = get_daily_count(user_id)
-            remaining = max(0, FREE_DAILY_LIMIT - used)
-        else:
-            remaining = 9999  # ilimitado
+        if email:
+            cursor.execute("UPDATE usuarios SET total_mensajes = total_mensajes + 1 WHERE email=?", (email,))
+            conn.commit()
+
+        remaining = 9999 if plan != "libre" else max(0, FREE_DAILY_LIMIT - get_daily_count(user_id))
 
         return jsonify({
             "reply": respuesta,
@@ -70,9 +202,86 @@ def reset():
         clear_context(user_id)
     return jsonify({"ok": True})
 
-@app.route("/status", methods=["GET"])
-def status():
-    return jsonify({"status": "VeraxIA activa 🤍", "version": "2.0"})
+# ─── ADMIN DASHBOARD ───────────────────────────────────────
+
+@app.route("/admin", methods=["GET"])
+def admin():
+    email = get_email_from_request()
+    if email != ADMIN_EMAIL:
+        return jsonify({"error": "No autorizado"}), 403
+    return render_template("admin.html")
+
+@app.route("/admin/stats", methods=["GET"])
+def admin_stats():
+    email = get_email_from_request()
+    if email != ADMIN_EMAIL:
+        return jsonify({"error": "No autorizado"}), 403
+
+    hoy = datetime.now().strftime("%Y-%m-%d")
+
+    cursor.execute("SELECT COUNT(*) FROM usuarios")
+    total_usuarios = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM usuarios WHERE fecha_registro LIKE ?", (f"{hoy}%",))
+    nuevos_hoy = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM usuarios WHERE plan != 'libre'")
+    usuarios_pagos = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM messages WHERE timestamp LIKE ?", (f"{hoy}%",))
+    mensajes_hoy = cursor.fetchone()[0]
+
+    cursor.execute("SELECT plan, COUNT(*) FROM usuarios GROUP BY plan")
+    planes = dict(cursor.fetchall())
+
+    cursor.execute("""
+        SELECT email, plan, total_mensajes, ultimo_acceso, fecha_registro
+        FROM usuarios ORDER BY ultimo_acceso DESC LIMIT 20
+    """)
+    ultimos = [{"email": r[0], "plan": r[1], "mensajes": r[2],
+                "ultimo_acceso": r[3], "registro": r[4]} for r in cursor.fetchall()]
+
+    cursor.execute("""
+        SELECT SUM(monto_usd) FROM pagos WHERE estado='activo'
+    """)
+    ingresos = cursor.fetchone()[0] or 0
+
+    return jsonify({
+        "total_usuarios": total_usuarios,
+        "nuevos_hoy": nuevos_hoy,
+        "usuarios_pagos": usuarios_pagos,
+        "mensajes_hoy": mensajes_hoy,
+        "planes": planes,
+        "ultimos_usuarios": ultimos,
+        "ingresos_total_usd": round(ingresos, 2)
+    })
+
+@app.route("/admin/upgrade", methods=["POST"])
+def admin_upgrade():
+    email_admin = get_email_from_request()
+    if email_admin != ADMIN_EMAIL:
+        return jsonify({"error": "No autorizado"}), 403
+
+    data = request.get_json()
+    email = data.get("email")
+    plan = data.get("plan", "alma")
+    monto = data.get("monto", 7)
+    metodo = data.get("metodo", "manual")
+
+    cursor.execute("UPDATE usuarios SET plan=? WHERE email=?", (plan, email))
+    vencimiento = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
+    cursor.execute("""
+        INSERT INTO pagos (email, plan, monto_usd, metodo, estado, vencimiento)
+        VALUES (?, ?, ?, ?, 'activo', ?)
+    """, (email, plan, monto, metodo, vencimiento))
+    conn.commit()
+
+    try:
+        registrar_pago(email, email, plan, metodo)
+    except:
+        pass
+
+    return jsonify({"ok": True, "email": email, "plan": plan})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
