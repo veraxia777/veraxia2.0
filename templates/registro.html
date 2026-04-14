@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>VeraxIA - Registro</title>
+  <style>
+    body { font-family: sans-serif; background: #0d0d0d; color: #eee; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .box { background: #1a1a1a; padding: 2rem; border-radius: 12px; width: 320px; }
+    h2 { text-align: center; color: #c084fc; }
+    input { width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; border: 1px solid #444; background: #111; color: #eee; box-sizing: border-box; }
+    button { width: 100%; padding: 10px; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+    button:hover { background: #6d28d9; }
+    .error { color: #f87171; text-align: center; margin-top: 8px; font-size: 0.9rem; }
+    .link { text-align: center; margin-top: 1rem; font-size: 0.9rem; }
+    .link a { color: #c084fc; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>🤍 Crear cuenta</h2>
+    <form id="form-registro">
+      <input type="email" id="email" placeholder="Tu email" required>
+      <input type="password" id="password" placeholder="Contraseña (mín. 6 caracteres)" required>
+      <button type="submit">Registrarme</button>
+    </form>
+    <p id="error-msg" class="error" style="display:none"></p>
+    <div class="link"><a href="/login">¿Ya tienes cuenta? Entra aquí</a></div>
+  </div>
+  <script>
+    document.getElementById("form-registro").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const res = await fetch("/registro", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({email, password})
+      });
+      const data = await res.json();
+      if (data.ok) {
+        window.location.href = "/";
+      } else {
+        const err = document.getElementById("error-msg");
+        err.textContent = data.error;
+        err.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>

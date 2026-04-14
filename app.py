@@ -72,11 +72,11 @@ def status():
 
 # ─── REGISTRO Y LOGIN ──────────────────────────────────────
 
-@app.route("/registro", methods=["POST"])
+@app.route("/registro", methods=["GET", "POST"])
 def registro():
-    data = request.get_json()
-    email = data.get("email", "").strip().lower()
-    password = data.get("password", "").strip()
+    if request.method == "GET":
+        return render_template("registro.html")
+    # el resto que ya tienes...
 
     if not email or not password:
         return jsonify({"error": "Email y contraseña requeridos"}), 400
