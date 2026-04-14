@@ -1,3 +1,5 @@
+import os
+import hashlib 
 import sqlite3
 
 conn = sqlite3.connect("veraxia.db", check_same_thread=False)
@@ -57,5 +59,18 @@ CREATE TABLE IF NOT EXISTS pagos (
     notas TEXT
 )
 """)
+import hashlib
 
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "veraxia777520@gmail.com")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "veraxia2024")
+
+cursor.execute("""
+    INSERT OR IGNORE INTO usuarios (email, password_hash, plan, estado)
+    VALUES (?, ?, 'admin', 'activo')
+""", (ADMIN_EMAIL, hash_password(ADMIN_PASSWORD)))
+
+conn.commit()
 conn.commit()
