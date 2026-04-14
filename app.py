@@ -102,7 +102,7 @@ def registro():
             return jsonify({"error": "Este email ya está registrado"}), 409
         return jsonify({"error": str(e)}), 500
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     data = request.get_json()
     email = data.get("email", "").strip().lower()
