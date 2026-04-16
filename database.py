@@ -2,8 +2,6 @@ import sqlite3
 import os
 DB_PATH = os.getenv("DB_PATH", "/data/veraxia.db")
 conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-
-conn = sqlite3.connect("veraxia.db", check_same_thread=False)
 cursor = conn.cursor()
 
 cursor.execute("""
