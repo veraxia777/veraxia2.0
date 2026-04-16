@@ -26,7 +26,7 @@ if GOOGLE_CREDS_DICT:
 
 def get_daily_count(user_id: str) -> int:
     hoy = datetime.now().strftime("%Y-%m-%d")
-    cursor.execute("SELECT count FROM daily_usage WHERE user_id=? AND date=?", (user_id, hoy))
+    cursor.execute("SELECT count FROM daily_usage WHERE user_id=%s AND date=%s", (user_id, hoy))
     row = cursor.fetchone()
     return row[0] if row else 0
 
@@ -34,8 +34,8 @@ def get_daily_count(user_id: str) -> int:
 def increment_daily_count(user_id: str):
     hoy = datetime.now().strftime("%Y-%m-%d")
     cursor.execute("""
-        INSERT INTO daily_usage (user_id, date, count) VALUES (?, ?, 1)
-        ON CONFLICT(user_id, date) DO UPDATE SET count = count + 1
+        INSERT INTO daily_usage (user_id, date, count) VALUES (%s, %s, 1)
+        ON CONFLICT(user_id, date) DO UPDATE SET count = daily_usage.count + 1
     """, (user_id, hoy))
     conn.commit()
 
@@ -47,11 +47,12 @@ def is_within_limit(user_id: str) -> bool:
 def save_message(user_id: str, user_input: str, reply: str, emocion: str = ""):
     ahora = datetime.now().strftime("%Y-%m-%d %H:%M")
     try:
-        cursor.execute("INSERT INTO messages (user_id, role, content) VALUES (?, ?, ?)", (user_id, "user", user_input))
-        cursor.execute("INSERT INTO messages (user_id, role, content) VALUES (?, ?, ?)", (user_id, "assistant", reply))
+        cursor.execute("INSERT INTO messages (user_id, role, content) VALUES (%s, %s, %s)", (user_id, "user", user_input))
+        cursor.execute("INSERT INTO messages (user_id, role, content) VALUES (%s, %s, %s)", (user_id, "assistant", reply))
         conn.commit()
     except Exception as e:
-        logger.error(f"❌ SQLite: {e}")
+        logger.error(f"❌ PostgreSQL: {e}")
+        conn.rollback()
 
     if hoja_conversaciones:
         try:
@@ -72,7 +73,7 @@ def save_message(user_id: str, user_input: str, reply: str, emocion: str = ""):
 def get_context(user_id: str) -> list:
     try:
         cursor.execute(
-            "SELECT role, content FROM messages WHERE user_id=? ORDER BY id DESC LIMIT ?",
+            "SELECT role, content FROM messages WHERE user_id=%s ORDER BY id DESC LIMIT %s",
             (user_id, MAX_CONTEXT)
         )
         rows = cursor.fetchall()
@@ -85,7 +86,7 @@ def get_context(user_id: str) -> list:
 
 def clear_context(user_id: str):
     try:
-        cursor.execute("DELETE FROM messages WHERE user_id=?", (user_id,))
+        cursor.execute("DELETE FROM messages WHERE user_id=%s", (user_id,))
         conn.commit()
     except Exception as e:
         logger.error(f"❌ Reset: {e}")
