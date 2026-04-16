@@ -74,15 +74,14 @@ def status():
 
 @app.route("/registro", methods=["GET", "POST"])
 def registro():
-    if request.method == "GET":
+   if request.method == "GET":
         return render_template("registro.html")
-    # el resto que ya tienes...
+    
+    data = request.get_json()
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "").strip()
 
     if not email or not password:
-        return jsonify({"error": "Email y contraseña requeridos"}), 400
-    if len(password) < 6:
-        return jsonify({"error": "Contraseña mínimo 6 caracteres"}), 400
-
     try:
         cursor.execute(
             "INSERT INTO usuarios (email, password_hash) VALUES (?, ?)",
