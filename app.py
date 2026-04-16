@@ -11,6 +11,7 @@ import hashlib
 import secrets
 from datetime import datetime, timedelta
 import os
+import mercadopago
 
 load_dotenv()
 
@@ -296,6 +297,99 @@ def admin_upgrade():
         pass
 
     return jsonify({"ok": True, "email": email, "plan": plan})
+import mercadopago
 
+MP_ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN")  # ponlo en Railway como variable de entorno
+
+@app.route("/crear_pago", methods=["POST"])
+def crear_pago():
+    email = get_email_from_request()
+    if not email:
+        return jsonify({"error": "No autenticado"}), 401
+
+    data = request.get_json()
+    plan = data.get("plan")  # "alma" o "alma_pro"
+
+    if plan == "alma":
+        titulo = "VeraxIA Plan Alma"
+        precio = 7
+    elif plan == "alma_pro":
+        titulo = "VeraxIA Plan Alma Pro"
+        precio = 15
+    else:
+        return jsonify({"error": "Plan inválido"}), 400
+
+    sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
+    BASE_URL = os.environ.get("BASE_URL", "https://web-production-5f0e2.up.railway.app")
+
+    preference_data = {
+        "items": [{"title": titulo, "quantity": 1, "unit_price": precio, "currency_id": "USD"}],
+        "payer": {"email": email},
+        "back_urls": {
+            "success": f"{BASE_URL}/pago_exitoso",
+            "failure": f"{BASE_URL}/pago_fallido",
+            "pending": f"{BASE_URL}/pago_pendiente"
+        },
+        "auto_return": "approved",
+        "notification_url": f"{BASE_URL}/webhook",
+        "metadata": {"email": email, "plan": plan}
+    }
+
+    result = sdk.preference().create(preference_data)
+    init_point = result["response"]["init_point"]
+    return jsonify({"url": init_point})
+
+
+@app.route("/pago_exitoso")
+def pago_exitoso():
+    return render_template("pago_exitoso.html")  # o redirect("/chat")
+
+
+@app.route("/pago_fallido")
+def pago_fallido():
+    return render_template("pago_fallido.html")  # o redirect("/planes")
+
+
+@app.route("/pago_pendiente")
+def pago_pendiente():
+    return render_template("pago_pendiente.html")
+
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    data = request.get_json(silent=True) or {}
+    
+    # MP manda tipo "payment" cuando se confirma
+    if data.get("type") != "payment":
+        return jsonify({"ok": True}), 200
+
+    payment_id = data.get("data", {}).get("id")
+    if not payment_id:
+        return jsonify({"ok": True}), 200
+
+    try:
+        sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
+        payment_info = sdk.payment().get(payment_id)
+        payment = payment_info["response"]
+
+        if payment.get("status") != "approved":
+            return jsonify({"ok": True}), 200
+
+        metadata = payment.get("metadata", {})
+        email = metadata.get("email")
+        plan = metadata.get("plan")  # "alma" o "alma_pro"
+
+        if not email or not plan:
+            return jsonify({"error": "Metadata incompleta"}), 400
+
+        plan_nombre = "alma" if plan == "alma" else "alma_pro"
+        cursor.execute("UPDATE usuarios SET plan=? WHERE email=?", (plan_nombre, email))
+        conn.commit()
+
+    except Exception as e:
+        print(f"Error webhook: {e}")
+        return jsonify({"error": str(e)}), 500
+
+    return jsonify({"ok": True}), 200
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
