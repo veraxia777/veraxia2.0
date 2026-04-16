@@ -29,7 +29,7 @@ def hash_password(password):
 def crear_token(email):
     token = secrets.token_hex(32)
     expira = datetime.now() + timedelta(days=30)
-    cursor.execute("INSERT INTO sesiones (token, email, expira) VALUES (?, ?, ?)",
+    cursor.execute("INSERT INTO sesiones (token, email, expira) VALUES (?, %s, %s)",
                    (token, email, expira.strftime("%Y-%m-%d %H:%M:%S")))
     conn.commit()
     return token
@@ -86,7 +86,7 @@ def registro():
         return jsonify({"error": "Email y contraseña requeridos"}), 400
     try:
         cursor.execute(
-            "INSERT INTO usuarios (email, password_hash) VALUES (?, ?)",
+            "INSERT INTO usuarios (email, password_hash) VALUES (?, %s)",
             (email, hash_password(password))
         )
         conn.commit()
@@ -237,13 +237,13 @@ def admin_stats():
     cursor.execute("SELECT COUNT(*) FROM usuarios")
     total_usuarios = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM usuarios WHERE fecha_registro LIKE ?", (f"{hoy}%",))
+    cursor.execute("SELECT COUNT(*) FROM usuarios WHERE fecha_registro LIKE %s", (f"{hoy}%",))
     nuevos_hoy = cursor.fetchone()[0]
 
     cursor.execute("SELECT COUNT(*) FROM usuarios WHERE plan != 'libre'")
     usuarios_pagos = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM messages WHERE timestamp LIKE ?", (f"{hoy}%",))
+    cursor.execute("SELECT COUNT(*) FROM messages WHERE timestamp LIKE %s", (f"{hoy}%",))
     mensajes_hoy = cursor.fetchone()[0]
 
     cursor.execute("SELECT plan, COUNT(*) FROM usuarios GROUP BY plan")
@@ -287,7 +287,7 @@ def admin_upgrade():
     vencimiento = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
     cursor.execute("""
         INSERT INTO pagos (email, plan, monto_usd, metodo, estado, vencimiento)
-        VALUES (?, ?, ?, ?, 'activo', ?)
+        VALUES (?, %s, %s, %s, 'activo', %s)
     """, (email, plan, monto, metodo, vencimiento))
     conn.commit()
 

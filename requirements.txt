@@ -8,4 +8,5 @@ google-auth
 python-telegram-bot==20.7
 gunicorn
 gunicorn 
-mercadopago
+mercadopago 
+psycopg2-binary
