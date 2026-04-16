@@ -73,8 +73,8 @@ def status():
 # ─── REGISTRO Y LOGIN ──────────────────────────────────────
 
 @app.route("/registro", methods=["GET", "POST"])
-def registro():
-   if request.method == "GET":
+def registro():    
+    if request.method == "GET":
         return render_template("registro.html")
     
     data = request.get_json()
