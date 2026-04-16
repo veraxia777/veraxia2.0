@@ -208,7 +208,7 @@
         <li>Acceso web y Telegram</li>
         <li>Sin interrupciones</li>
       </ul>
-      <a href="https://mpago.la/337UEe2" target="_blank" class="btn-primary" style="width:100%;display:block;text-align:center;text-decoration:none;">Activar Alma</a>
+      <button class="btn-primary" style="width:100%;" onclick="iniciarPago('alma')">Activar Alma</button>
     </div>
     <div class="plan-card">
       <p class="plan-name">Alma Pro</p>
@@ -221,7 +221,7 @@
         <li>Sesiones más extensas</li>
         <li>Actualizaciones anticipadas</li>
       </ul>
-      <a href="https://mpago.la/1pi2rxi" target="_blank" class="btn-secondary" style="width:100%;display:block;text-align:center;text-decoration:none;">Activar Pro</a>
+      <button class="btn-secondary" style="width:100%;" onclick="iniciarPago('alma_pro')">Activar Pro</button>
     </div>
   </div>
 </section>
@@ -403,6 +403,24 @@
     input.addEventListener('input',()=>{input.style.height='auto';input.style.height=Math.min(input.scrollHeight,120)+'px';});
     input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}});
   });
+</script>
+<script>
+async function iniciarPago(plan) {
+  const res = await fetch('/crear_pago', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({plan: plan})
+  });
+  const data = await res.json();
+  if (data.url) {
+    window.location.href = data.url;
+  } else if (data.error === 'No autenticado') {
+    alert('Debes iniciar sesión primero para activar un plan.');
+    window.location.href = '/login';
+  } else {
+    alert('Error al iniciar el pago. Intenta de nuevo.');
+  }
+}
 </script>
 </body>
 </html>
