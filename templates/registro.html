@@ -8,9 +8,11 @@
     .box { background: #1a1a1a; padding: 2rem; border-radius: 12px; width: 320px; }
     h2 { text-align: center; color: #c084fc; }
     input { width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; border: 1px solid #444; background: #111; color: #eee; box-sizing: border-box; }
-    button { width: 100%; padding: 10px; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+    button { width: 100%; padding: 10px; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; font-size: 1rem; }
     button:hover { background: #6d28d9; }
+    button:disabled { background: #444; cursor: not-allowed; }
     .error { color: #f87171; text-align: center; margin-top: 8px; font-size: 0.9rem; }
+    .success { color: #4ade80; text-align: center; margin-top: 8px; font-size: 0.9rem; }
     .link { text-align: center; margin-top: 1rem; font-size: 0.9rem; }
     .link a { color: #c084fc; }
   </style>
@@ -18,59 +20,66 @@
 <body>
   <div class="box">
     <h2>🤍 Crear cuenta</h2>
-    <form id="form-registro">
-      <input type="email" id="email" placeholder="Tu email" required>
-      <input type="password" id="password" placeholder="Contraseña (mín. 6 caracteres)" required>
-      <button type="submit">Registrarme</button>
-    </form>
-    <p id="error-msg" class="error" style="display:none"></p>
+    <input type="email" id="email" placeholder="Tu email" required>
+    <input type="password" id="password" placeholder="Contraseña (mín. 6 caracteres)" required>
+    <button id="btn" onclick="registrar()">Registrarme</button>
+    <p id="msg" style="display:none"></p>
     <div class="link"><a href="/login">¿Ya tienes cuenta? Entra aquí</a></div>
   </div>
-  <script>
-    document.getElementById("form-registro").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const res = await fetch("/registro", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({email, password})
-      });
-      const data = await res.json();
-      if (data.ok) {
-        window.location.href = "/";
-      } else {
-        const err = document.getElementById("error-msg");
-        err.textContent = data.error;
-        err.style.display = "block";
-      }
-    });
-  <script>
-  document.getElementById("form-registro").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const err = document.getElementById("error-msg");
-    
-    try {
-      const res = await fetch("/registro", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({email, password})
-      });
-      const data = await res.json();
-      if (data.ok) {
-        window.location.href = "/";
-      } else {
-        err.textContent = data.error || "Error desconocido";
-        err.style.display = "block";
-      }
-    } catch(e) {
-      err.textContent = "Error de conexión: " + e.message;
-      err.style.display = "block";
-    }
-  });
-</script>
 
+  <script>
+    async function registrar() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const btn = document.getElementById("btn");
+      const msg = document.getElementById("msg");
+
+      msg.style.display = "none";
+
+      if (!email || !password) {
+        msg.className = "error";
+        msg.textContent = "Por favor completa todos los campos.";
+        msg.style.display = "block";
+        return;
+      }
+
+      if (password.length < 6) {
+        msg.className = "error";
+        msg.textContent = "La contraseña debe tener al menos 6 caracteres.";
+        msg.style.display = "block";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Registrando...";
+
+      try {
+        const res = await fetch("/registro", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({email, password})
+        });
+        const data = await res.json();
+        if (res.ok && data.ok) {
+          msg.className = "success";
+          msg.textContent = "✅ ¡Cuenta creada! Redirigiendo...";
+          msg.style.display = "block";
+          setTimeout(() => { window.location.href = "/"; }, 1500);
+        } else {
+          msg.className = "error";
+          msg.textContent = data.error || "Error al registrarse.";
+          msg.style.display = "block";
+          btn.disabled = false;
+          btn.textContent = "Registrarme";
+        }
+      } catch(e) {
+        msg.className = "error";
+        msg.textContent = "Error de conexión. Intenta de nuevo.";
+        msg.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "Registrarme";
+      }
+    }
+  </script>
 </body>
 </html>
