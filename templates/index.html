@@ -151,14 +151,18 @@
 
 <div class="wrapper">
 
-<nav>
+  <nav>
   <div class="nav-brand" onclick="showLanding()">Verax<span>IA</span></div>
   <ul class="nav-links">
     <li><a href="#planes">Planes</a></li>
     <li><a href="#fundadora">Fundadora</a></li>
     <li><a href="#contacto">Contacto</a></li>
   </ul>
-  <button class="nav-cta" onclick="openChat()">Comenzar</button>
+  <div style="display:flex; gap:8px;">
+    <a href="/login"><button style="padding:8px 16px; background:transparent; color:#c084fc; border:1px solid #c084fc; border-radius:8px; cursor:pointer;">Entrar</button></a>
+    <a href="/registro"><button style="padding:8px 16px; background:#7c3aed; color:white; border:none; border-radius:8px; cursor:pointer;">Registrarse</button></a>
+    <button class="nav-cta" onclick="openChat()">Comenzar</button>
+  </div>
 </nav>
 
 <!-- HERO -->
