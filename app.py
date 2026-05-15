@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, session, redirect, url_for, make_response
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for, make_response, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 from ai_engine import generate_response
@@ -72,7 +72,12 @@ def privacidad():
 @app.route("/status", methods=["GET"])
 def status():
     return jsonify({"status": "VeraxIA activa 🤍", "version": "2.1"})
-
+@app.route("/sitemap.xml")
+def sitemap():
+    return send_from_directory("static", "sitemap.xml") 
+@app.route("/robots.txt")
+def robots():
+    return send_from_directory("static", "robots.txt")
 # ─── REGISTRO Y LOGIN ──────────────────────────────────────
 
 @app.route("/registro", methods=["GET", "POST"])
