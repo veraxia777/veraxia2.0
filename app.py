@@ -17,7 +17,10 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", secrets.token_hex(32))
-CORS(app)
+CORS(app, origins=[
+    "https://veraxia.cl",
+    "https://www.veraxia.cl"
+], supports_credentials=True)
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "veraxia777520@gmail.com")
 
