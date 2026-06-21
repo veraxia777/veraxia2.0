@@ -1,0 +1,7 @@
+*.py
+requirements.txt
+templates/
+static/
+__pycache__/
+*.db
+nixpacks.toml
