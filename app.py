@@ -107,7 +107,7 @@ def registro():
         except:
             pass
         resp = jsonify({"ok": True, "plan": "libre", "email": email})
-        resp.set_cookie("vx_token", token, max_age=30*24*3600, httponly=True, samesite="Lax")
+        resp.set_cookie("vx_token", token, max_age=30*24*3600, httponly=True, samesite="None", secure=True)
         return resp
     except Exception as e:
         conn.rollback()
@@ -148,7 +148,7 @@ def login():
         resp = jsonify({"ok": True, "plan": row[1], "email": email})
     else:
         resp = make_response(redirect("/admin"))
-    resp.set_cookie("vx_token", token, max_age=30*24*3600, httponly=True, samesite="Lax")
+    resp.set_cookie("vx_token", token, max_age=30*24*3600, httponly=True, samesite="None", secure=True)
     return resp
 
 @app.route("/logout", methods=["POST"])
