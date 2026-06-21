@@ -1,12 +1,5 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "index.html", "use": "@vercel/static" },
-    { "src": "images/hero.png", "use": "@vercel/static" },
-    { "src": "images/daniela.png", "use": "@vercel/static" }
-  ],
-  "routes": [
-    { "src": "/images/(.*)", "dest": "/images/$1" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
