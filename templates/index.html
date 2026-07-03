@@ -74,13 +74,7 @@
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
-body{background:var(--bg1);color:var(--t1);font-family:var(--font-sans);font-weight:300;overflow-x:hidden;transition:background .35s,color .35s;cursor:none;}
-
-/* CURSOR */
-.cur{position:fixed;width:9px;height:9px;background:var(--violet);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s;mix-blend-mode:multiply;}
-[data-theme=dark] .cur{mix-blend-mode:screen;}
-.cur-ring{position:fixed;width:34px;height:34px;border:1.5px solid rgba(61,31,110,.35);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .3s,height .3s;}
-[data-theme=dark] .cur-ring{border-color:rgba(155,127,212,.35);}
+body{background:var(--bg1);color:var(--t1);font-family:var(--font-sans);font-weight:300;overflow-x:hidden;transition:background .35s,color .35s;}
 
 /* ========== NAV ========== */
 nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);transition:var(--trans);}
@@ -295,6 +289,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);ba
   .footer-newsletter{grid-column:1/-1;}
   .nav-links{display:none;}
   .steps-grid::before{display:none;}
+  .pricing-grid{grid-template-columns:1fr;max-width:480px;padding:0 1.5rem;gap:1.8rem;}
+  .plan-card.featured{transform:none;}
 }
 @media(max-width:640px){
   .nav-inner{padding:.85rem 1.2rem;gap:1rem;}
@@ -306,6 +302,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);ba
   .footer-bottom-bar{flex-direction:column;gap:.5rem;text-align:center;padding:1.2rem 1.5rem;}
   .privacy-inner{flex-direction:column;}
   .form-row2{grid-template-columns:1fr;}
+  .pricing-grid{padding:0 1.2rem;gap:1.5rem;}
+  .plan-card{padding:2.2rem 1.6rem;}
 }
 
   @keyframes float-sello {
@@ -382,9 +380,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);ba
 </style>
 </head>
 <body>
-
-<div class="cur" id="cur"></div>
-<div class="cur-ring" id="curRing"></div>
 
 <!-- ====== NAV ====== -->
 <nav>
@@ -672,7 +667,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);ba
       <h3 class="plan-name" data-i18n="pl1_name">Plan Alma</h3>
       <div class="plan-price">
         <span class="currency">$</span>
-        <span class="amount">6</span>
+        <span class="amount">4</span>
         <span class="period" data-i18n="pl1_period">USD / mes</span>
       </div>
       <p class="plan-desc" data-i18n="pl1_desc">Conversaciones ilimitadas con una IA que te recuerda y acompaña de verdad.</p>
@@ -699,7 +694,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);ba
       <h3 class="plan-name" data-i18n="pl2_name">Alma Fundadora</h3>
       <div class="plan-price">
         <span class="currency">$</span>
-        <span class="amount">15</span>
+        <span class="amount">10</span>
         <span class="period" data-i18n="pl2_period">USD / mes</span>
       </div>
       <p class="plan-desc" data-i18n="pl2_desc">Acceso completo y privilegios exclusivos. Sé parte del corazón de veraxIA.</p>
@@ -998,16 +993,6 @@ document.getElementById('langSel').addEventListener('change',e=>applyLang(e.targ
 let dark=false;
 const tBtn=document.getElementById('themeBtn');
 tBtn.addEventListener('click',()=>{dark=!dark;document.documentElement.setAttribute('data-theme',dark?'dark':'light');tBtn.textContent=dark?'🌙':'☀️';});
-
-// CURSOR
-const cur=document.getElementById('cur'),ring=document.getElementById('curRing');
-let mx=0,my=0,rx=0,ry=0;
-document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
-(function ar(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(ar);})();
-document.querySelectorAll('a,button,select,.ctag,.puerta-card').forEach(el=>{
-  el.addEventListener('mouseenter',()=>{cur.style.width='14px';cur.style.height='14px';ring.style.width='50px';ring.style.height='50px';});
-  el.addEventListener('mouseleave',()=>{cur.style.width='9px';cur.style.height='9px';ring.style.width='34px';ring.style.height='34px';});
-});
 
 // SCROLL REVEAL
 const revs=document.querySelectorAll('.reveal');
