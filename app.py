@@ -80,7 +80,8 @@ def sitemap():
     return send_from_directory("static", "sitemap.xml") 
 @app.route("/robots.txt")
 def robots():
-    return send_from_directory("static", "robots.txt")
+    return send_from_directory("static", "robots.txt") 
+    @app.route("/images/<path:filename>")
 # ─── REGISTRO Y LOGIN ──────────────────────────────────────
 
 @app.route("/registro", methods=["GET", "POST"])
