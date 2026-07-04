@@ -12,6 +12,7 @@ import secrets
 from datetime import datetime, timedelta
 import os
 import mercadopago
+import requests
 
 load_dotenv()
 
@@ -394,6 +395,63 @@ def webhook():
 
     return jsonify({"ok": True}), 200
 
+
+# ─── WHATSAPP CLOUD API ──────────────────────────────
+WHATSAPP_VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN")
+WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN")
+WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID")
+
+@app.route("/webhook/whatsapp", methods=["GET"])
+def whatsapp_verify():
+    mode = request.args.get("hub.mode")
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+    if mode == "subscribe" and token == WHATSAPP_VERIFY_TOKEN:
+        return challenge, 200
+    return "Token de verificacion invalido", 403
+
+
+@app.route("/webhook/whatsapp", methods=["POST"])
+def whatsapp_incoming():
+    data = request.get_json(silent=True) or {}
+    try:
+        entry = data["entry"][0]
+        changes = entry["changes"][0]
+        value = changes["value"]
+        messages = value.get("messages")
+        if not messages:
+            return jsonify({"ok": True}), 200
+
+        msg = messages[0]
+        from_number = msg["from"]
+        text = msg.get("text", {}).get("body", "")
+
+        if text:
+            respuesta = generate_response(f"wsp_{from_number}", text)
+            enviar_whatsapp(from_number, respuesta)
+
+    except Exception as e:
+        print(f"Error en webhook WhatsApp: {e}")
+
+    return jsonify({"ok": True}), 200
+
+
+def enviar_whatsapp(numero, mensaje):
+    url = f"https://graph.facebook.com/v20.0/{WHATSAPP_PHONE_NUMBER_ID}/messages"
+    headers = {
+        "Authorization": f"Bearer {WHATSAPP_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": numero,
+        "type": "text",
+        "text": {"body": mensaje}
+    }
+    r = requests.post(url, headers=headers, json=payload)
+    if r.status_code >= 300:
+        print(f"Error enviando WhatsApp: {r.status_code} {r.text}")
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
-# test
