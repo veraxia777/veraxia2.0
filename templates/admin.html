@@ -5,125 +5,275 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VeraxIA — Panel Daniela</title>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: system-ui, sans-serif; background:#060b18; color:#f0ece0; min-height:100vh; }
-  .header { background:#0a0e1a; border-bottom:1px solid rgba(201,168,76,0.2); padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center; }
-  .logo { font-size:1.2rem; color:#c9a84c; font-weight:500; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; padding:2rem; }
-  .card { background:#0a0e1a; border:1px solid rgba(201,168,76,0.15); border-radius:10px; padding:1.25rem; }
-  .card-num { font-size:2rem; font-weight:600; color:#c9a84c; }
-  .card-label { font-size:0.75rem; color:rgba(240,236,224,0.5); margin-top:4px; text-transform:uppercase; letter-spacing:0.08em; }
-  .section { padding:0 2rem 2rem; }
-  .section-title { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:rgba(240,236,224,0.4); margin-bottom:1rem; }
-  table { width:100%; border-collapse:collapse; font-size:0.85rem; }
-  th { text-align:left; padding:8px 12px; color:rgba(240,236,224,0.4); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; border-bottom:1px solid rgba(201,168,76,0.1); }
-  td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); color:rgba(240,236,224,0.8); }
-  .badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:0.7rem; font-weight:500; }
-  .badge-libre { background:rgba(255,255,255,0.08); color:rgba(240,236,224,0.5); }
-  .badge-alma { background:rgba(201,168,76,0.15); color:#c9a84c; }
-  .badge-pro { background:rgba(74,127,212,0.15); color:#4a7fd4; }
-  .upgrade-form { background:#0a0e1a; border:1px solid rgba(201,168,76,0.15); border-radius:10px; padding:1.5rem; margin:0 2rem 2rem; }
-  .upgrade-form h3 { font-size:0.85rem; color:#c9a84c; margin-bottom:1rem; }
-  .form-row { display:flex; gap:10px; flex-wrap:wrap; }
-  input, select { background:rgba(240,236,224,0.05); border:1px solid rgba(201,168,76,0.2); border-radius:6px; padding:8px 12px; color:#f0ece0; font-size:0.85rem; outline:none; }
-  input { flex:1; min-width:200px; }
-  button { background:#c9a84c; color:#060b18; border:none; border-radius:6px; padding:8px 20px; font-size:0.85rem; font-weight:500; cursor:pointer; }
-  button:hover { background:#e8d49a; }
-  .msg { font-size:0.8rem; margin-top:8px; color:#4a7fd4; }
-  .refresh { background:transparent; border:1px solid rgba(201,168,76,0.3); color:#c9a84c; font-size:0.75rem; padding:6px 14px; }
+  :root {
+    --gold:#c9a84c; --gold-soft:rgba(201,168,76,0.15); --gold-border:rgba(201,168,76,0.25);
+    --bg:#060b18; --card:#0a0e1a; --card2:#0d1220;
+    --text:#f0ece0; --muted:rgba(240,236,224,0.5); --muted2:rgba(240,236,224,0.25);
+    --green:#4caf7d; --red:#e05c5c; --blue:#5c9ce0; --purple:#9c6ce0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+  /* HEADER */
+  .header{background:var(--card);border-bottom:1px solid var(--gold-border);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+  .logo{display:flex;align-items:center;gap:10px;}
+  .logo-icon{width:36px;height:36px;border-radius:50%;background:var(--gold-soft);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+  .logo-text{font-size:1.1rem;color:var(--gold);font-weight:600;letter-spacing:.05em;}
+  .logo-sub{font-size:.7rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+  .header-right{display:flex;align-items:center;gap:16px;}
+  .refresh-btn{background:var(--gold-soft);border:1px solid var(--gold-border);color:var(--gold);padding:7px 14px;border-radius:20px;font-size:.8rem;cursor:pointer;font-family:inherit;}
+  .refresh-btn:hover{background:rgba(201,168,76,0.25);}
+  .logout-btn{background:none;border:1px solid var(--muted2);color:var(--muted);padding:7px 14px;border-radius:20px;font-size:.8rem;cursor:pointer;font-family:inherit;}
+  .logout-btn:hover{border-color:var(--red);color:var(--red);}
+
+  /* STATS GRID */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;padding:2rem 2rem 1rem;}
+  .stat{background:var(--card);border:1px solid var(--gold-border);border-radius:14px;padding:1.25rem;position:relative;overflow:hidden;transition:transform .2s;}
+  .stat:hover{transform:translateY(-2px);}
+  .stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+  .stat.gold::before{background:var(--gold);}
+  .stat.green::before{background:var(--green);}
+  .stat.blue::before{background:var(--blue);}
+  .stat.purple::before{background:var(--purple);}
+  .stat.red::before{background:var(--red);}
+  .stat-num{font-size:2.2rem;font-weight:700;color:var(--gold);line-height:1;}
+  .stat.green .stat-num{color:var(--green);}
+  .stat.blue .stat-num{color:var(--blue);}
+  .stat.purple .stat-num{color:var(--purple);}
+  .stat.red .stat-num{color:var(--red);}
+  .stat-label{font-size:.72rem;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.08em;}
+  .stat-icon{position:absolute;top:1rem;right:1rem;font-size:1.4rem;opacity:.35;}
+
+  /* SECCIONES */
+  .content{padding:0 2rem 3rem;}
+  .section{background:var(--card);border:1px solid var(--gold-border);border-radius:14px;margin-bottom:1.5rem;overflow:hidden;}
+  .sec-header{padding:1rem 1.5rem;border-bottom:1px solid var(--gold-border);display:flex;align-items:center;gap:10px;}
+  .sec-header h2{font-size:.9rem;font-weight:600;color:var(--gold);letter-spacing:.05em;text-transform:uppercase;}
+  .sec-tag{font-size:.7rem;padding:3px 10px;border-radius:20px;margin-left:auto;}
+  .sec-tag.green{background:rgba(76,175,125,.15);color:var(--green);}
+  .sec-tag.blue{background:rgba(92,156,224,.15);color:var(--blue);}
+
+  /* TABLA */
+  .tbl-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  th{padding:10px 16px;text-align:left;font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--gold-border);}
+  td{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:var(--gold-soft);}
+
+  /* BADGES */
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;}
+  .badge.libre{background:rgba(240,236,224,.08);color:var(--muted);}
+  .badge.alma{background:rgba(201,168,76,.15);color:var(--gold);}
+  .badge.alma_pro{background:rgba(156,108,224,.2);color:var(--purple);}
+  .badge.admin{background:rgba(76,175,125,.15);color:var(--green);}
+
+  /* PLANES */
+  .planes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1.5rem;}
+  .plan-card{background:var(--card2);border:1px solid var(--gold-border);border-radius:10px;padding:1rem;text-align:center;}
+  .plan-num{font-size:1.8rem;font-weight:700;}
+  .plan-name{font-size:.75rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.08em;}
+
+  /* UPGRADE FORM */
+  .upgrade-form{padding:1.5rem;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-group label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+  .form-group input, .form-group select{background:var(--card2);border:1px solid var(--gold-border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:.85rem;font-family:inherit;outline:none;}
+  .form-group input:focus, .form-group select:focus{border-color:var(--gold);}
+  .upgrade-btn{background:var(--gold);color:#060b18;border:none;padding:9px 20px;border-radius:8px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;}
+  .upgrade-btn:hover{opacity:.9;}
+
+  /* EMPTY */
+  .empty{padding:2rem;text-align:center;color:var(--muted);font-size:.85rem;}
+
+  /* LOADING */
+  .loading{padding:2rem;text-align:center;color:var(--muted);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--gold-border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle;}
+
+  /* AUTO-UPDATE */
+  .auto-tag{font-size:.7rem;color:var(--muted);margin-left:auto;}
+
+  @media(max-width:600px){
+    .stats{grid-template-columns:1fr 1fr;}
+    .planes-grid{grid-template-columns:1fr;}
+    .header{padding:.75rem 1rem;}
+    .content,.stats{padding-left:1rem;padding-right:1rem;}
+  }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="logo">VeraxIA · Panel Daniela</div>
-  <button class="refresh" onclick="cargar()">Actualizar</button>
-</div>
-
-<div class="grid" id="stats-grid">
-  <div class="card"><div class="card-num" id="s-total">—</div><div class="card-label">Usuarios totales</div></div>
-  <div class="card"><div class="card-num" id="s-nuevos">—</div><div class="card-label">Nuevos hoy</div></div>
-  <div class="card"><div class="card-num" id="s-pagos">—</div><div class="card-label">Usuarios de pago</div></div>
-  <div class="card"><div class="card-num" id="s-mensajes">—</div><div class="card-label">Mensajes hoy</div></div>
-  <div class="card"><div class="card-num" id="s-ingresos">—</div><div class="card-label">Ingresos totales USD</div></div>
-</div>
-
-<div class="upgrade-form">
-  <h3>Activar plan manualmente</h3>
-  <div class="form-row">
-    <input type="email" id="upg-email" placeholder="Email del usuario"/>
-    <select id="upg-plan">
-      <option value="alma">Alma ($7)</option>
-      <option value="alma_pro">Alma Pro ($15)</option>
-      <option value="libre">Libre</option>
-    </select>
-    <input type="number" id="upg-monto" placeholder="Monto USD" style="max-width:120px;" value="7"/>
-    <input type="text" id="upg-metodo" placeholder="Método (MercadoPago, etc)" style="max-width:180px;"/>
-    <button onclick="activarPlan()">Activar</button>
+  <div class="logo">
+    <div class="logo-icon">🧭</div>
+    <div>
+      <div class="logo-text">VeraxIA</div>
+      <div class="logo-sub">Panel Daniela</div>
+    </div>
   </div>
-  <div class="msg" id="upg-msg"></div>
+  <div class="header-right">
+    <button class="refresh-btn" onclick="cargar()">↻ Actualizar</button>
+    <button class="logout-btn" onclick="logout()">Salir</button>
+  </div>
 </div>
 
-<div class="section">
-  <div class="section-title">Últimos usuarios</div>
-  <table>
-    <thead>
-      <tr>
-        <th>Email</th>
-        <th>Plan</th>
-        <th>Mensajes</th>
-        <th>Último acceso</th>
-        <th>Registro</th>
-      </tr>
-    </thead>
-    <tbody id="tabla-usuarios"></tbody>
-  </table>
+<!-- STATS -->
+<div class="stats" id="stats">
+  <div class="stat gold"><span class="stat-icon">👥</span><div class="stat-num" id="s-total">—</div><div class="stat-label">Usuarios totales</div></div>
+  <div class="stat green"><span class="stat-icon">✨</span><div class="stat-num" id="s-nuevos">—</div><div class="stat-label">Nuevos hoy</div></div>
+  <div class="stat blue"><span class="stat-icon">💬</span><div class="stat-num" id="s-mensajes">—</div><div class="stat-label">Mensajes hoy</div></div>
+  <div class="stat purple"><span class="stat-icon">💎</span><div class="stat-num" id="s-pagos">—</div><div class="stat-label">Con plan activo</div></div>
+  <div class="stat red"><span class="stat-icon">💵</span><div class="stat-num" id="s-ingresos">—</div><div class="stat-label">Ingresos USD</div></div>
+</div>
+
+<div class="content">
+
+  <!-- PLANES -->
+  <div class="section">
+    <div class="sec-header">
+      <span>📊</span>
+      <h2>Distribución de planes</h2>
+      <span class="sec-tag green" id="planes-count">cargando...</span>
+    </div>
+    <div class="planes-grid" id="planes-grid">
+      <div class="loading"><span class="spinner"></span>Cargando...</div>
+    </div>
+  </div>
+
+  <!-- USUARIOS RECIENTES -->
+  <div class="section">
+    <div class="sec-header">
+      <span>🕐</span>
+      <h2>Últimos usuarios activos</h2>
+      <span class="auto-tag">últimos 20</span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Email</th><th>Plan</th><th>Mensajes</th><th>Último acceso</th><th>Registro</th>
+        </tr></thead>
+        <tbody id="tabla-usuarios"><tr><td colspan="5" class="empty">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SUBIR PLAN -->
+  <div class="section">
+    <div class="sec-header">
+      <span>⚡</span>
+      <h2>Gestionar plan de usuario</h2>
+      <span class="sec-tag blue">Admin</span>
+    </div>
+    <div class="upgrade-form">
+      <div class="form-group">
+        <label>Email del usuario</label>
+        <input type="email" id="upg-email" placeholder="usuario@email.com" style="min-width:220px;">
+      </div>
+      <div class="form-group">
+        <label>Plan</label>
+        <select id="upg-plan">
+          <option value="libre">Libre (gratuito)</option>
+          <option value="alma">Alma ($7 USD)</option>
+          <option value="alma_pro">Alma Pro ($15 USD)</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Monto USD</label>
+        <input type="number" id="upg-monto" value="7" style="width:90px;">
+      </div>
+      <div class="form-group">
+        <label>Método</label>
+        <select id="upg-metodo">
+          <option value="manual">Manual</option>
+          <option value="mercadopago">MercadoPago</option>
+          <option value="transferencia">Transferencia</option>
+          <option value="cortesia">Cortesía</option>
+        </select>
+      </div>
+      <button class="upgrade-btn" onclick="upgradeUsuario()">Actualizar plan →</button>
+    </div>
+    <div id="upg-msg" style="padding:0 1.5rem 1rem;font-size:.85rem;color:var(--green);display:none;"></div>
+  </div>
+
 </div>
 
 <script>
 async function cargar() {
-  const res = await fetch('/admin/stats');
-  if (res.status === 403) { document.body.innerHTML = '<p style="padding:2rem;color:#e24b4a;">No autorizado</p>'; return; }
-  const d = await res.json();
-  document.getElementById('s-total').textContent = d.total_usuarios;
-  document.getElementById('s-nuevos').textContent = d.nuevos_hoy;
-  document.getElementById('s-pagos').textContent = d.usuarios_pagos;
-  document.getElementById('s-mensajes').textContent = d.mensajes_hoy;
-  document.getElementById('s-ingresos').textContent = '$' + d.ingresos_total_usd;
+  try {
+    const r = await fetch('/admin/stats');
+    if (!r.ok) { window.location = '/login'; return; }
+    const d = await r.json();
 
-  const tbody = document.getElementById('tabla-usuarios');
-  tbody.innerHTML = '';
-  d.ultimos_usuarios.forEach(u => {
-    const badge = u.plan === 'libre' ? 'badge-libre' : u.plan === 'alma_pro' ? 'badge-pro' : 'badge-alma';
-    tbody.innerHTML += `<tr>
-      <td>${u.email}</td>
-      <td><span class="badge ${badge}">${u.plan}</span></td>
-      <td>${u.mensajes}</td>
-      <td>${u.ultimo_acceso || '—'}</td>
-      <td>${u.registro || '—'}</td>
-    </tr>`;
-  });
+    document.getElementById('s-total').textContent = d.total_usuarios || 0;
+    document.getElementById('s-nuevos').textContent = d.nuevos_hoy || 0;
+    document.getElementById('s-mensajes').textContent = d.mensajes_hoy || 0;
+    document.getElementById('s-pagos').textContent = d.usuarios_pagos || 0;
+    document.getElementById('s-ingresos').textContent = '$' + (d.ingresos_total_usd || 0).toFixed(2);
+
+    // Planes
+    const planes = d.planes || {};
+    const total = Object.values(planes).reduce((a,b)=>a+b,0);
+    document.getElementById('planes-count').textContent = total + ' usuarios';
+    document.getElementById('planes-grid').innerHTML = Object.entries(planes).map(([p,n])=>`
+      <div class="plan-card">
+        <div class="plan-num" style="color:${p==='libre'?'var(--muted)':p==='alma'?'var(--gold)':'var(--purple)'}">${n}</div>
+        <div class="plan-name">${p}</div>
+      </div>
+    `).join('') || '<div class="empty">Sin datos</div>';
+
+    // Tabla usuarios
+    const filas = (d.ultimos_usuarios || []).map(u=>`
+      <tr>
+        <td>${u.email}</td>
+        <td><span class="badge ${u.plan}">${u.plan}</span></td>
+        <td>${u.mensajes || 0}</td>
+        <td>${(u.ultimo_acceso||'').substring(0,16)}</td>
+        <td>${(u.registro||'').substring(0,10)}</td>
+      </tr>
+    `).join('');
+    document.getElementById('tabla-usuarios').innerHTML = filas || '<tr><td colspan="5" class="empty">Sin usuarios aún</td></tr>';
+
+  } catch(e) {
+    console.error(e);
+  }
 }
 
-async function activarPlan() {
-  const email = document.getElementById('upg-email').value;
+async function upgradeUsuario() {
+  const email = document.getElementById('upg-email').value.trim();
   const plan = document.getElementById('upg-plan').value;
-  const monto = document.getElementById('upg-monto').value;
-  const metodo = document.getElementById('upg-metodo').value || 'manual';
-  const msg = document.getElementById('upg-msg');
-  if (!email) { msg.textContent = 'Ingresa el email'; return; }
-  const res = await fetch('/admin/upgrade', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({email, plan, monto: parseFloat(monto), metodo})
+  const monto = parseFloat(document.getElementById('upg-monto').value) || 0;
+  const metodo = document.getElementById('upg-metodo').value;
+
+  if (!email) { alert('Ingresa el email del usuario'); return; }
+
+  const r = await fetch('/admin/upgrade', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({email, plan, monto, metodo})
   });
-  const d = await res.json();
-  if (d.ok) { msg.textContent = `✅ Plan ${plan} activado para ${email}`; msg.style.color='#5DCAA5'; cargar(); }
-  else { msg.textContent = d.error; msg.style.color='#e24b4a'; }
+  const d = await r.json();
+
+  const msg = document.getElementById('upg-msg');
+  msg.style.display = 'block';
+  if (d.ok) {
+    msg.style.color = 'var(--green)';
+    msg.textContent = `✅ ${email} actualizado a plan "${plan}"`;
+    cargar();
+  } else {
+    msg.style.color = 'var(--red)';
+    msg.textContent = `❌ Error: ${d.error}`;
+  }
+}
+
+async function logout() {
+  await fetch('/logout', {method:'POST'});
+  window.location = '/login';
 }
 
 cargar();
-setInterval(cargar, 60000);
+setInterval(cargar, 30000);
 </script>
 </body>
 </html>
