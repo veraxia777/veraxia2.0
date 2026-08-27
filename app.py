@@ -17,6 +17,20 @@ import requests
 load_dotenv()
 
 app = Flask(__name__)
+
+# ── Rate limiting por IP ────────────────────────────────────
+import time
+from collections import defaultdict
+_rate_store = defaultdict(list)
+
+def check_rate_limit(ip, max_msgs=20, ventana=600):
+    ahora = time.time()
+    _rate_store[ip] = [t for t in _rate_store[ip] if ahora - t < ventana]
+    if len(_rate_store[ip]) >= max_msgs:
+        return False
+    _rate_store[ip].append(ahora)
+    return True
+# ────────────────────────────────────────────────────────────
 app.secret_key = os.getenv("SECRET_KEY", secrets.token_hex(32))
 CORS(app, origins=[
     "https://veraxia.cl",
@@ -177,6 +191,10 @@ def yo():
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr or 'unknown').split(',')[0].strip()
+    if not check_rate_limit(ip):
+        return jsonify({"error": "limite", "message": "Demasiados mensajes. Por favor espera unos minutos antes de continuar. 🙏"}), 429
+
     data = request.get_json()
     if not data or "message" not in data:
         return jsonify({"error": "Falta el campo 'message'"}), 400
