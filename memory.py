@@ -1,4 +1,4 @@
-from database import cursor, conn
+from database import get_conn
 from config import MAX_CONTEXT, GOOGLE_CREDS_DICT, FREE_DAILY_LIMIT
 from datetime import datetime
 import logging
@@ -25,19 +25,21 @@ if GOOGLE_CREDS_DICT:
 
 
 def get_daily_count(user_id: str) -> int:
+    con, cur = get_conn()
     hoy = datetime.now().strftime("%Y-%m-%d")
-    cursor.execute("SELECT count FROM daily_usage WHERE user_id=%s AND date=%s", (user_id, hoy))
-    row = cursor.fetchone()
+    cur.execute("SELECT count FROM daily_usage WHERE user_id=%s AND date=%s", (user_id, hoy))
+    row = cur.fetchone()
     return row[0] if row else 0
 
 
 def increment_daily_count(user_id: str):
+    con, cur = get_conn()
     hoy = datetime.now().strftime("%Y-%m-%d")
-    cursor.execute("""
+    cur.execute("""
         INSERT INTO daily_usage (user_id, date, count) VALUES (%s, %s, 1)
         ON CONFLICT(user_id, date) DO UPDATE SET count = daily_usage.count + 1
     """, (user_id, hoy))
-    conn.commit()
+    con.commit()
 
 
 def is_within_limit(user_id: str) -> bool:
