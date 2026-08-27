@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from ai_engine import generate_response
 from memory import is_within_limit, get_daily_count, clear_context
 from sheets import registrar_conversacion, registrar_usuario, registrar_pago
-from database import cursor, conn
+from database import cursor, conn, get_conn
 from config import FREE_DAILY_LIMIT
 import uuid
 import hashlib
@@ -45,11 +45,12 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 def crear_token(email):
+    con, cur = get_conn()
     token = secrets.token_hex(32)
     expira = datetime.now() + timedelta(days=30)
-    cursor.execute("INSERT INTO sesiones (token, email, expira) VALUES (%s, %s, %s)",
+    cur.execute("INSERT INTO sesiones (token, email, expira) VALUES (%s, %s, %s)",
                    (token, email, expira.strftime("%Y-%m-%d %H:%M:%S")))
-    conn.commit()
+    con.commit()
     return token
 
 def verificar_token(token):
@@ -146,24 +147,26 @@ def login():
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "").strip()
 
-    cursor.execute(
+    con, cur = get_conn()
+    cur.execute(
         "SELECT email, plan FROM usuarios WHERE email=%s AND password_hash=%s",
         (email, hash_password(password))
     )
-    row = cursor.fetchone()
+    row = cur.fetchone()
 
     if not row:
         if request.is_json:
             return jsonify({"error": "Email o contraseña incorrectos"}), 401
         return render_template("login.html", error="Email o contraseña incorrectos")
 
-    cursor.execute("UPDATE usuarios SET ultimo_acceso=%s WHERE email=%s",
+    plan_usuario = row[1] if row and len(row) > 1 else "libre"
+    cur.execute("UPDATE usuarios SET ultimo_acceso=%s WHERE email=%s",
                    (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), email))
-    conn.commit()
+    con.commit()
     token = crear_token(email)
 
     if request.is_json:
-        resp = jsonify({"ok": True, "plan": row[1], "email": email})
+        resp = jsonify({"ok": True, "plan": plan_usuario, "email": email})
     else:
         resp = make_response(redirect("/admin"))
     resp.set_cookie("vx_token", token, max_age=30*24*3600, httponly=True, samesite="None", secure=True)
