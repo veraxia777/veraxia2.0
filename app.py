@@ -264,32 +264,33 @@ def admin_stats():
     if email != ADMIN_EMAIL:
         return jsonify({"error": "No autorizado"}), 403
 
+    con, cur = get_conn()
     hoy = datetime.now().strftime("%Y-%m-%d")
 
-    cursor.execute("SELECT COUNT(*) FROM usuarios")
-    total_usuarios = cursor.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM usuarios")
+    total_usuarios = cur.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM usuarios WHERE fecha_registro::date = %s", (hoy,))
-    nuevos_hoy = cursor.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM usuarios WHERE fecha_registro::date = %s", (hoy,))
+    nuevos_hoy = cur.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM usuarios WHERE plan != 'libre'")
-    usuarios_pagos = cursor.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM usuarios WHERE plan != 'libre'")
+    usuarios_pagos = cur.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM messages WHERE timestamp::date = %s", (hoy,))
-    mensajes_hoy = cursor.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM messages WHERE timestamp::date = %s", (hoy,))
+    mensajes_hoy = cur.fetchone()[0]
 
-    cursor.execute("SELECT plan, COUNT(*) FROM usuarios GROUP BY plan")
-    planes = dict(cursor.fetchall())
+    cur.execute("SELECT plan, COUNT(*) FROM usuarios GROUP BY plan")
+    planes = dict(cur.fetchall())
 
-    cursor.execute("""
+    cur.execute("""
         SELECT email, plan, total_mensajes, ultimo_acceso, fecha_registro
         FROM usuarios ORDER BY ultimo_acceso DESC LIMIT 20
     """)
     ultimos = [{"email": r[0], "plan": r[1], "mensajes": r[2],
-                "ultimo_acceso": str(r[3]), "registro": str(r[4])} for r in cursor.fetchall()]
+                "ultimo_acceso": str(r[3]), "registro": str(r[4])} for r in cur.fetchall()]
 
-    cursor.execute("SELECT SUM(monto_usd) FROM pagos WHERE estado='activo'")
-    ingresos = cursor.fetchone()[0] or 0
+    cur.execute("SELECT SUM(monto_usd) FROM pagos WHERE estado='activo'")
+    ingresos = cur.fetchone()[0] or 0
 
     return jsonify({
         "total_usuarios": total_usuarios,
