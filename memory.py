@@ -49,12 +49,16 @@ def is_within_limit(user_id: str) -> bool:
 def save_message(user_id: str, user_input: str, reply: str, emocion: str = ""):
     ahora = datetime.now().strftime("%Y-%m-%d %H:%M")
     try:
-        cursor.execute("INSERT INTO messages (user_id, role, content) VALUES (%s, %s, %s)", (user_id, "user", user_input))
-        cursor.execute("INSERT INTO messages (user_id, role, content) VALUES (%s, %s, %s)", (user_id, "assistant", reply))
-        conn.commit()
+        con, cur = get_conn()
+        cur.execute("INSERT INTO messages (user_id, role, content) VALUES (%s, %s, %s)", (user_id, "user", user_input))
+        cur.execute("INSERT INTO messages (user_id, role, content) VALUES (%s, %s, %s)", (user_id, "assistant", reply))
+        con.commit()
     except Exception as e:
-        logger.error(f"❌ PostgreSQL: {e}")
-        conn.rollback()
+        logger.error(f"❌ PostgreSQL save_message: {e}")
+        try:
+            con.rollback()
+        except:
+            pass
 
     if hoja_conversaciones:
         try:
@@ -74,11 +78,12 @@ def save_message(user_id: str, user_input: str, reply: str, emocion: str = ""):
 
 def get_context(user_id: str) -> list:
     try:
-        cursor.execute(
+        con, cur = get_conn()
+        cur.execute(
             "SELECT role, content FROM messages WHERE user_id=%s ORDER BY id DESC LIMIT %s",
             (user_id, MAX_CONTEXT)
         )
-        rows = cursor.fetchall()
+        rows = cur.fetchall()
         rows.reverse()
         return [{"role": r, "content": c} for r, c in rows]
     except Exception as e:
@@ -88,7 +93,8 @@ def get_context(user_id: str) -> list:
 
 def clear_context(user_id: str):
     try:
-        cursor.execute("DELETE FROM messages WHERE user_id=%s", (user_id,))
-        conn.commit()
+        con, cur = get_conn()
+        cur.execute("DELETE FROM messages WHERE user_id=%s", (user_id,))
+        con.commit()
     except Exception as e:
         logger.error(f"❌ Reset: {e}")
