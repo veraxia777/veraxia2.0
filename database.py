@@ -5,28 +5,33 @@ import hashlib
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# ── Conexión con reconexión automática ──────────────────────
 _conn = None
 _cursor = None
 
 def get_conn():
     """
     Retorna (conn, cursor) reconectando si la conexión está cerrada.
-    Soluciona: psycopg2.InterfaceError: cursor already closed
+    USA UN CURSOR SEPARADO para el health check — no corrompe resultados pendientes.
     """
     global _conn, _cursor
     try:
-        if _conn is None or _conn.closed:
-            raise Exception("Conexión cerrada")
-        # Verificar que la conexión sigue viva
-        _cursor.execute("SELECT 1")
+        if _conn is None or _conn.closed != 0:
+            raise Exception("Sin conexión")
+        # Health check con cursor SEPARADO para no afectar _cursor
+        _hc = _conn.cursor()
+        _hc.execute("SELECT 1")
+        _hc.close()
     except Exception:
+        try:
+            if _conn:
+                _conn.close()
+        except:
+            pass
         _conn = psycopg2.connect(DATABASE_URL)
         _conn.autocommit = False
         _cursor = _conn.cursor()
     return _conn, _cursor
 
-# Compatibilidad con código existente que usa cursor/conn directamente
 class _ProxyCursor:
     def __getattr__(self, name):
         _, cur = get_conn()
@@ -40,7 +45,6 @@ class _ProxyConn:
 conn = _ProxyConn()
 cursor = _ProxyCursor()
 
-# ── Crear tablas ────────────────────────────────────────────
 def init_db():
     con, cur = get_conn()
     cur.execute("""
@@ -102,5 +106,4 @@ def init_db():
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# Inicializar al importar
 init_db()
