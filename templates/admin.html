@@ -125,6 +125,8 @@
   <div class="stat blue"><span class="stat-icon">💬</span><div class="stat-num" id="s-mensajes">—</div><div class="stat-label">Mensajes hoy</div></div>
   <div class="stat purple"><span class="stat-icon">💎</span><div class="stat-num" id="s-pagos">—</div><div class="stat-label">Con plan activo</div></div>
   <div class="stat red"><span class="stat-icon">💵</span><div class="stat-num" id="s-ingresos">—</div><div class="stat-label">Ingresos USD</div></div>
+  <div class="stat" style="border-top:2px solid #5c9ce0;"><span class="stat-icon">👁</span><div class="stat-num" style="color:#5c9ce0;" id="s-visitas-hoy">—</div><div class="stat-label">Visitas hoy</div></div>
+  <div class="stat" style="border-top:2px solid #9c6ce0;"><span class="stat-icon">📊</span><div class="stat-num" style="color:#9c6ce0;" id="s-conversion">—</div><div class="stat-label">Conversión</div></div>
 </div>
 
 <div class="content">
@@ -238,6 +240,17 @@ async function cargar() {
   } catch(e) {
     console.error(e);
   }
+
+  // Cargar visitas
+  try {
+    const rv = await fetch('/api/visitas/stats');
+    if(rv.ok){
+      const v = await rv.json();
+      document.getElementById('s-visitas-hoy').textContent = v.hoy || 0;
+      const conv = v.hoy > 0 ? Math.round((v.registrados / v.total) * 100) : 0;
+      document.getElementById('s-conversion').textContent = conv + '%';
+    }
+  } catch(e) {}
 }
 
 async function upgradeUsuario() {
