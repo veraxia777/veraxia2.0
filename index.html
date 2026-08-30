@@ -1122,5 +1122,53 @@ function resetChat() {
 // Registrar visita anónima
 fetch('/api/visita', {method:'POST'}).catch(()=>{});
 </script>
+
+<script>
+// ── Apertura automática del chat post-login ──────────────────
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const chatOpen = params.get('chat');
+  const nombre = params.get('nombre') || '';
+
+  if (chatOpen === 'open') {
+    // Limpiar URL sin recargar
+    window.history.replaceState({}, '', '/');
+
+    // Esperar a que el DOM esté listo y abrir el chat
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        // Intentar abrir el widget de chat
+        const chatWidget = document.getElementById('chatWidget') ||
+                           document.querySelector('.chat-widget') ||
+                           document.querySelector('[id*="chat"]');
+
+        // Mostrar saludo personalizado
+        const saludo = nombre
+          ? `Hola ${nombre}, qué bueno verte de nuevo. 🌿 ¿En qué quieres profundizar hoy?`
+          : 'Bienvenida de nuevo. 🌿 ¿En qué quieres profundizar hoy?';
+
+        // Buscar el contenedor de mensajes del chat
+        const msgContainer = document.getElementById('chat-messages') ||
+                              document.querySelector('.chat-messages') ||
+                              document.querySelector('[id*="messages"]');
+
+        if (msgContainer) {
+          const msg = document.createElement('div');
+          msg.className = 'bot-message';
+          msg.innerHTML = `<p>${saludo}</p>`;
+          msgContainer.appendChild(msg);
+        }
+
+        // Activar el botón de chat si existe
+        const chatBtn = document.querySelector('.chat-btn') ||
+                        document.querySelector('[onclick*="chat"]') ||
+                        document.querySelector('.open-chat');
+        if (chatBtn) chatBtn.click();
+
+      }, 800);
+    });
+  }
+})();
+</script>
 </body>
 </html>
