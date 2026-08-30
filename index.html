@@ -1169,6 +1169,104 @@ fetch('/api/visita', {method:'POST'}).catch(()=>{});
     });
   }
 })();
+</script> 
+ <!-- ====== CHAT WIDGET ====== -->
+<style>
+#vx-btn{position:fixed;bottom:28px;right:28px;z-index:9999;width:58px;height:58px;border-radius:50%;background:var(--violet);color:#fff;border:none;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 24px rgba(61,31,110,0.4);display:flex;align-items:center;justify-content:center;transition:all .3s;}
+#vx-btn:hover{background:var(--gold);transform:scale(1.08);}
+#vx-panel{position:fixed;bottom:100px;right:28px;z-index:9998;width:360px;max-height:520px;background:var(--card);border:1px solid var(--border2);border-radius:16px;box-shadow:0 12px 48px rgba(0,0,0,.2);display:none;flex-direction:column;overflow:hidden;font-family:var(--font-sans);}
+#vx-panel.open{display:flex;}
+#vx-head{background:var(--violet);color:#fff;padding:.9rem 1.2rem;display:flex;align-items:center;justify-content:space-between;font-size:.88rem;font-weight:500;}
+#vx-head span{opacity:.7;font-size:.75rem;}
+#vx-close{background:transparent;border:none;color:#fff;font-size:1.2rem;cursor:pointer;padding:0 .3rem;line-height:1;}
+#vx-msgs{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.75rem;}
+.vx-msg{max-width:82%;padding:.65rem 1rem;border-radius:12px;font-size:.85rem;line-height:1.55;}
+.vx-msg.bot{background:var(--badge-bg);color:var(--t1);align-self:flex-start;border-bottom-left-radius:4px;}
+.vx-msg.usr{background:var(--violet);color:#fff;align-self:flex-end;border-bottom-right-radius:4px;}
+#vx-form{display:flex;border-top:1px solid var(--border);padding:.7rem;}
+#vx-input{flex:1;border:none;background:transparent;color:var(--t1);font-family:var(--font-sans);font-size:.85rem;outline:none;padding:.2rem .5rem;}
+#vx-input::placeholder{color:var(--t3);}
+#vx-send{background:var(--violet);color:#fff;border:none;border-radius:8px;padding:.45rem .9rem;cursor:pointer;font-size:.85rem;transition:background .3s;}
+#vx-send:hover{background:var(--gold);}
+#vx-typing{font-size:.75rem;color:var(--t3);padding:0 1rem .5rem;display:none;}
+</style>
+
+<button id="vx-btn" onclick="vxToggle()" title="Hablar con veraxIA">💬</button>
+
+<div id="vx-panel">
+  <div id="vx-head">
+    <div>✦ verax<span style="color:#C9A96E">IA</span> <span>— en línea</span></div>
+    <button id="vx-close" onclick="vxToggle()">✕</button>
+  </div>
+  <div id="vx-msgs"></div>
+  <div id="vx-typing">veraxIA está escribiendo…</div>
+  <div id="vx-form">
+    <input id="vx-input" placeholder="Escribe algo…" onkeydown="if(event.key==='Enter')vxSend()">
+    <button id="vx-send" onclick="vxSend()">➤</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const panel=document.getElementById('vx-panel');
+  const msgs=document.getElementById('vx-msgs');
+  const input=document.getElementById('vx-input');
+  const typing=document.getElementById('vx-typing');
+  let userId='web_'+Math.random().toString(36).slice(2,10);
+  let isOpen=false;
+
+  function addMsg(text,isUser){
+    const d=document.createElement('div');
+    d.className='vx-msg '+(isUser?'usr':'bot');
+    d.textContent=text;
+    msgs.appendChild(d);
+    msgs.scrollTop=msgs.scrollHeight;
+  }
+
+  window.vxToggle=function(){
+    isOpen=!isOpen;
+    panel.classList.toggle('open',isOpen);
+    if(isOpen) input.focus();
+  };
+
+  window.vxSend=async function(){
+    const txt=input.value.trim();
+    if(!txt)return;
+    input.value='';
+    addMsg(txt,true);
+    typing.style.display='block';
+    try{
+      const r=await fetch('/chat',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        credentials:'include',
+        body:JSON.stringify({message:txt,user_id:userId})
+      });
+      const d=await r.json();
+      typing.style.display='none';
+      if(d.reply) addMsg(d.reply,false);
+      else if(d.message) addMsg(d.message,false);
+    }catch(e){
+      typing.style.display='none';
+      addMsg('Error de conexión. Intenta de nuevo.',false);
+    }
+  };
+
+  // Auto-abrir si viene del login
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('chat')==='open'){
+    const nombre=decodeURIComponent(params.get('nombre')||'');
+    setTimeout(()=>{
+      vxToggle();
+      const saludo=nombre
+        ?'¡Hola '+nombre+'! Bienvenida de vuelta 🤍 ¿En qué te acompaño hoy?'
+        :'Hola 🤍 ¿En qué te acompaño hoy?';
+      setTimeout(()=>addMsg(saludo,false),400);
+    },300);
+    window.history.replaceState({},'','/');
+  }
+})();
 </script>
+<!-- ====== FIN CHAT WIDGET ====== -->       
 </body>
 </html>
