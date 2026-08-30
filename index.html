@@ -1117,5 +1117,10 @@ function resetChat() {
 }
 
 </script>
+
+<script>
+// Registrar visita anónima
+fetch('/api/visita', {method:'POST'}).catch(()=>{});
+</script>
 </body>
 </html>
