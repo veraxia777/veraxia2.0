@@ -3,66 +3,214 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Política de Privacidad — VeraxIA</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Política de Privacidad — veraxIA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root { --ink:#060b18; --parchment:#f0ece0; --gold:#c9a84c; --gold-light:#e8d49a; --muted:rgba(240,236,224,0.55); --border:rgba(201,168,76,0.2); }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Outfit',sans-serif; background:var(--ink); color:var(--parchment); padding:4rem 1.5rem; max-width:820px; margin:0 auto; }
-  h1 { font-family:'Cormorant Garamond',serif; font-size:2.5rem; font-weight:300; color:var(--parchment); margin-bottom:0.5rem; }
-  h2 { font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:400; color:var(--gold); margin:2rem 0 0.75rem; }
-  p, li { font-size:0.92rem; font-weight:300; line-height:1.9; color:var(--muted); margin-bottom:0.75rem; }
-  ul { padding-left:1.5rem; margin-bottom:1rem; }
-  .divider { width:100px; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:1.5rem 0; }
-  a { color:var(--gold); text-decoration:none; }
-  .back { display:inline-block; margin-bottom:2rem; font-size:0.8rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); border:1px solid var(--border); padding:8px 20px; border-radius:3px; transition:all 0.2s; }
-  .back:hover { color:var(--gold); border-color:var(--gold); }
+  :root {
+    --gold:#A07840; --gold-l:#C9A96E;
+    --bg:#FFFFFF; --bg2:#F8F5F0; --bg3:#EFE9DE;
+    --t1:#1A1207; --t2:#4A3F30; --t3:#9A8C78;
+    --border:rgba(160,120,64,0.15);
+    --font-serif:'Cormorant Garamond',Georgia,serif;
+    --font-sans:'Outfit',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-sans);background:var(--bg);color:var(--t1);font-weight:300;line-height:1.75;}
+
+  /* NAV */
+  nav{background:rgba(255,255,255,.97);border-bottom:1px solid var(--border);padding:16px 40px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
+  .nav-logo{font-family:var(--font-serif);font-size:1.3rem;color:var(--gold);text-decoration:none;letter-spacing:.04em;}
+  .nav-back{font-size:.82rem;color:var(--t3);text-decoration:none;display:flex;align-items:center;gap:6px;}
+  .nav-back:hover{color:var(--gold);}
+
+  /* HERO */
+  .hero{background:var(--bg2);padding:64px 40px 48px;border-bottom:1px solid var(--border);}
+  .hero-inner{max-width:760px;margin:0 auto;}
+  .hero-tag{font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;}
+  .hero h1{font-family:var(--font-serif);font-size:clamp(2rem,4vw,3rem);color:var(--t1);margin-bottom:12px;line-height:1.15;}
+  .hero-meta{font-size:.85rem;color:var(--t3);}
+
+  /* CONTENIDO */
+  .content{max-width:760px;margin:0 auto;padding:56px 40px;}
+  .section{margin-bottom:48px;}
+  .section h2{font-family:var(--font-serif);font-size:1.45rem;color:var(--t1);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+  .section h3{font-size:.95rem;font-weight:500;color:var(--gold);margin:20px 0 8px;letter-spacing:.04em;}
+  .section p{color:var(--t2);margin-bottom:12px;font-size:.95rem;}
+  .section ul{color:var(--t2);font-size:.95rem;padding-left:20px;margin-bottom:12px;}
+  .section ul li{margin-bottom:6px;}
+  .highlight{background:var(--bg2);border-left:3px solid var(--gold);padding:16px 20px;border-radius:0 8px 8px 0;margin:20px 0;}
+  .highlight p{margin:0;font-size:.9rem;color:var(--t2);}
+
+  /* FOOTER */
+  footer{background:var(--bg2);border-top:1px solid var(--border);padding:32px 40px;text-align:center;}
+  footer p{font-size:.82rem;color:var(--t3);}
+  footer a{color:var(--gold);text-decoration:none;}
+
+  @media(max-width:600px){
+    nav{padding:14px 20px;}
+    .hero{padding:40px 20px 32px;}
+    .content{padding:40px 20px;}
+    footer{padding:24px 20px;}
+  }
 </style>
 </head>
 <body>
-  <a href="/" class="back">← Volver a VeraxIA</a>
-  <h1>Política de Privacidad</h1>
-  <p style="font-size:0.78rem;color:rgba(240,236,224,0.3);letter-spacing:0.1em;">Última actualización: Abril 2026</p>
-  <div class="divider"></div>
 
-  <h2>1. Quiénes somos</h2>
-  <p>VeraxIA SpA, RUT 78.191.058-9, con sede en Villa Alegre, Región del Maule, Chile. Puedes contactarnos en <a href="mailto:veraxia777520@gmail.com">veraxia777520@gmail.com</a>.</p>
+<nav>
+  <a href="/" class="nav-logo">veraxIA</a>
+  <a href="/" class="nav-back">← Volver al inicio</a>
+</nav>
 
-  <h2>2. Qué información recopilamos</h2>
-  <ul>
-    <li>Mensajes que escribes en el chat (contenido de conversaciones)</li>
-    <li>Identificador anónimo de usuario generado automáticamente</li>
-    <li>Fecha y hora de las conversaciones</li>
-    <li>Email solo si lo proporcionas voluntariamente</li>
-  </ul>
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">Legal · Chile</div>
+    <h1>Política de Privacidad</h1>
+    <p class="hero-meta">Última actualización: agosto 2026 · Vigente según Ley N° 21.719 de Chile</p>
+  </div>
+</div>
 
-  <h2>3. Para qué usamos tu información</h2>
-  <ul>
-    <li>Mejorar las respuestas y la calidad del servicio</li>
-    <li>Controlar el límite de mensajes del plan gratuito</li>
-    <li>Detectar y bloquear usos abusivos o peligrosos</li>
-    <li>Estadísticas internas de uso (sin identificación personal)</li>
-  </ul>
+<div class="content">
 
-  <h2>4. Almacenamiento de datos</h2>
-  <p>Las conversaciones se almacenan en una base de datos segura y en Google Sheets de acceso restringido, accesible solo por el equipo de VeraxIA SpA.</p>
+  <div class="highlight">
+    <p><strong>En resumen:</strong> En veraxIA protegemos tus datos y conversaciones con altos estándares. No vendemos tu información. Puedes ejercer tus derechos en cualquier momento escribiéndonos a <a href="mailto:privacidad@veraxia.cl">privacidad@veraxia.cl</a>.</p>
+  </div>
 
-  <h2>5. No compartimos tus datos</h2>
-  <p>No vendemos, cedemos ni compartimos tu información con terceros, excepto cuando sea requerido por ley.</p>
+  <!-- 1 -->
+  <div class="section">
+    <h2>1. Responsable del tratamiento</h2>
+    <p>El responsable del tratamiento de tus datos personales es:</p>
+    <ul>
+      <li><strong>Razón social:</strong> veraxIA SpA</li>
+      <li><strong>Representante legal:</strong> Daniela Morán Brito</li>
+      <li><strong>País:</strong> Chile</li>
+      <li><strong>Correo de contacto:</strong> <a href="mailto:privacidad@veraxia.cl">privacidad@veraxia.cl</a></li>
+    </ul>
+  </div>
 
-  <h2>6. Cookies y almacenamiento local</h2>
-  <p>Usamos localStorage del navegador para recordar tu identificador de sesión. No usamos cookies de seguimiento ni publicidad.</p>
+  <!-- 2 -->
+  <div class="section">
+    <h2>2. Datos que recopilamos</h2>
+    <h3>Datos que tú nos proporcionas</h3>
+    <ul>
+      <li>Correo electrónico (al registrarte)</li>
+      <li>Contraseña (almacenada en formato cifrado SHA-256)</li>
+      <li>Contenido de las conversaciones con veraxIA</li>
+    </ul>
+    <h3>Datos que recopilamos automáticamente</h3>
+    <ul>
+      <li>Fecha y hora de acceso</li>
+      <li>Plan contratado y uso del servicio</li>
+      <li>Dirección IP (para seguridad y control de abuso)</li>
+    </ul>
+    <p>No recopilamos datos de ubicación precisa, datos biométricos, ni información de pago directamente — los pagos son procesados por MercadoPago bajo sus propias políticas.</p>
+  </div>
 
-  <h2>7. Tus derechos</h2>
-  <p>Puedes solicitar la eliminación de tus datos escribiendo a <a href="mailto:veraxia777520@gmail.com">veraxia777520@gmail.com</a>. Responderemos en un plazo máximo de 10 días hábiles.</p>
+  <!-- 3 -->
+  <div class="section">
+    <h2>3. Finalidad del tratamiento</h2>
+    <p>Usamos tus datos exclusivamente para:</p>
+    <ul>
+      <li>Prestar el servicio de acompañamiento cognitivo de veraxIA</li>
+      <li>Gestionar tu cuenta, plan y acceso</li>
+      <li>Mejorar la calidad del servicio de forma agregada y anonimizada</li>
+      <li>Enviarte comunicaciones relacionadas con el servicio (si lo autorizaste)</li>
+      <li>Prevenir fraude y proteger la seguridad de la plataforma</li>
+    </ul>
+    <p><strong>No usamos tus datos para publicidad de terceros ni los vendemos bajo ninguna circunstancia.</strong></p>
+  </div>
 
-  <h2>8. Menores de edad</h2>
-  <p>VeraxIA no está dirigida a menores de 14 años. Si detectamos uso por menores, eliminaremos sus datos inmediatamente.</p>
+  <!-- 4 -->
+  <div class="section">
+    <h2>4. Base de legitimidad</h2>
+    <p>El tratamiento de tus datos se basa en:</p>
+    <ul>
+      <li><strong>Consentimiento:</strong> al registrarte y aceptar esta política</li>
+      <li><strong>Ejecución del contrato:</strong> para prestarte el servicio contratado</li>
+      <li><strong>Interés legítimo:</strong> para la seguridad y mejora del servicio</li>
+    </ul>
+    <p>Puedes retirar tu consentimiento en cualquier momento sin afectar la licitud del tratamiento previo.</p>
+  </div>
 
-  <h2>9. Cambios en esta política</h2>
-  <p>Nos reservamos el derecho de actualizar esta política. Los cambios serán publicados en esta misma página.</p>
+  <!-- 5 -->
+  <div class="section">
+    <h2>5. Transferencias internacionales</h2>
+    <p>veraxIA utiliza los siguientes proveedores externos que pueden procesar tus datos fuera de Chile:</p>
+    <ul>
+      <li><strong>OpenAI (EE.UU.):</strong> procesamiento de conversaciones mediante modelos de lenguaje. OpenAI no usa los datos de la API para entrenar sus modelos sin consentimiento expreso.</li>
+      <li><strong>Railway (EE.UU.):</strong> infraestructura de servidores y base de datos.</li>
+      <li><strong>MercadoPago:</strong> procesamiento de pagos (solo aplica si contratas un plan).</li>
+    </ul>
+    <p>Estas transferencias se realizan bajo garantías adecuadas de protección conforme al artículo 24 de la Ley N° 21.719.</p>
+  </div>
 
-  <div class="divider"></div>
-  <p style="font-size:0.78rem;">veraxIA SpA · Villa Alegre, Región del Maule, Chile · veraxia777520@gmail.com</p>
+  <!-- 6 -->
+  <div class="section">
+    <h2>6. Retención de datos</h2>
+    <ul>
+      <li><strong>Datos de cuenta:</strong> mientras mantengas tu cuenta activa</li>
+      <li><strong>Conversaciones:</strong> máximo 12 meses desde la última sesión activa</li>
+      <li><strong>Datos de pago:</strong> según las obligaciones legales y tributarias vigentes (hasta 6 años)</li>
+      <li><strong>Logs de seguridad:</strong> máximo 90 días</li>
+    </ul>
+    <p>Al eliminar tu cuenta, procederemos a la supresión de tus datos personales dentro de los 30 días hábiles siguientes, salvo obligación legal de conservación.</p>
+  </div>
+
+  <!-- 7 -->
+  <div class="section">
+    <h2>7. Tus derechos (Ley N° 21.719)</h2>
+    <p>Como titular de datos tienes derecho a:</p>
+    <ul>
+      <li><strong>Acceso:</strong> conocer qué datos tenemos sobre ti</li>
+      <li><strong>Rectificación:</strong> corregir datos inexactos o incompletos</li>
+      <li><strong>Supresión:</strong> solicitar la eliminación de tus datos ("derecho al olvido")</li>
+      <li><strong>Portabilidad:</strong> recibir tus datos en formato estructurado y legible por máquina</li>
+      <li><strong>Oposición:</strong> oponerte al tratamiento en determinadas circunstancias</li>
+      <li><strong>Limitación:</strong> solicitar la restricción del tratamiento mientras se resuelve una reclamación</li>
+      <li><strong>Revocación del consentimiento:</strong> en cualquier momento, sin efecto retroactivo</li>
+    </ul>
+    <div class="highlight">
+      <p>Para ejercer cualquiera de estos derechos, escríbenos a <a href="mailto:privacidad@veraxia.cl">privacidad@veraxia.cl</a> con el asunto "Ejercicio de derechos ARCO" y responderemos dentro de los plazos establecidos por la ley (máximo 30 días hábiles).</p>
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="section">
+    <h2>8. Seguridad de los datos</h2>
+    <p>Implementamos medidas técnicas y organizativas para proteger tu información:</p>
+    <ul>
+      <li>Contraseñas cifradas con hash SHA-256</li>
+      <li>Comunicaciones cifradas mediante HTTPS/TLS</li>
+      <li>Acceso restringido a la base de datos (solo personal autorizado)</li>
+      <li>Rate limiting para prevenir ataques automatizados</li>
+      <li>Tokens de sesión con expiración automática</li>
+    </ul>
+  </div>
+
+  <!-- 9 -->
+  <div class="section">
+    <h2>9. Cookies</h2>
+    <p>veraxIA utiliza únicamente cookies técnicas esenciales para el funcionamiento del servicio (gestión de sesión). No utilizamos cookies de rastreo ni publicidad de terceros.</p>
+  </div>
+
+  <!-- 10 -->
+  <div class="section">
+    <h2>10. Cambios en esta política</h2>
+    <p>Podemos actualizar esta política para reflejar cambios en el servicio o en la normativa vigente. Te notificaremos por correo electrónico con al menos 15 días de anticipación ante cambios sustanciales.</p>
+    <p>La versión vigente siempre estará disponible en <a href="/privacidad">veraxia.cl/privacidad</a>.</p>
+  </div>
+
+  <!-- 11 -->
+  <div class="section">
+    <h2>11. Reclamaciones</h2>
+    <p>Si consideras que el tratamiento de tus datos vulnera la normativa vigente, puedes presentar una reclamación ante el <strong>Consejo para la Transparencia</strong> (autoridad de control en Chile) o ante los tribunales competentes, sin perjuicio de contactarnos primero para intentar resolver la situación.</p>
+  </div>
+
+</div>
+
+<footer>
+  <p>© 2026 veraxIA SpA · Chile · <a href="mailto:privacidad@veraxia.cl">privacidad@veraxia.cl</a> · <a href="/">Volver al inicio</a></p>
+</footer>
+
 </body>
 </html>
