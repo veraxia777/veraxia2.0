@@ -108,6 +108,46 @@ def home():
 def privacidad():
     return render_template("privacidad.html")
 
+@app.route("/api/visita", methods=["POST"])
+def registrar_visita():
+    try:
+        ip = request.headers.get('X-Forwarded-For', request.remote_addr or 'unknown').split(',')[0].strip()
+        con, cur = get_conn()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS visitas (
+                id SERIAL PRIMARY KEY,
+                ip TEXT,
+                fecha TEXT,
+                hora TEXT
+            )
+        """)
+        hoy = datetime.now().strftime("%Y-%m-%d")
+        cur.execute("SELECT id FROM visitas WHERE ip=%s AND fecha=%s", (ip, hoy))
+        if not cur.fetchone():
+            cur.execute(
+                "INSERT INTO visitas (ip, fecha, hora) VALUES (%s, %s, %s)",
+                (ip, hoy, datetime.now().strftime("%H:%M"))
+            )
+            con.commit()
+    except Exception:
+        pass
+    return jsonify({"ok": True})
+
+@app.route("/api/visitas/stats", methods=["GET"])
+def stats_visitas():
+    try:
+        con, cur = get_conn()
+        hoy = datetime.now().strftime("%Y-%m-%d")
+        cur.execute("SELECT COUNT(*) FROM visitas WHERE fecha=%s", (hoy,))
+        hoy_count = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM visitas")
+        total = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM usuarios")
+        total_reg = cur.fetchone()[0]
+        return jsonify({"hoy": hoy_count, "total": total, "registrados": total_reg})
+    except Exception as e:
+        return jsonify({"hoy": 0, "total": 0, "registrados": 0})
+
 @app.route("/status", methods=["GET"])
 def status():
     return jsonify({"status": "VeraxIA activa 🤍", "version": "2.1"})
