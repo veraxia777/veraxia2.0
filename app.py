@@ -217,7 +217,11 @@ def chat():
     if plan == "libre" and not is_within_limit(user_id):
         return jsonify({
             "error": "limite",
-            "message": f"Alcanzaste tus {FREE_DAILY_LIMIT} mensajes gratuitos de hoy 🌙 Regístrate gratis o activa tu plan Alma para continuar.",
+            "upgrade": True,
+            "email_capture": True,
+            "cta_text": "Activar Alma — $7 USD/mes",
+            "cta_url": "/planes",
+            "message": f"Has llegado lejos en esta conversación. 🌿\n\nAlcanzaste tus {FREE_DAILY_LIMIT} mensajes de hoy. Para seguir profundizando sin límites, activa tu plan Alma.\n\n¿Quieres que te avisemos cuando tu espacio se renueve mañana? Déjanos tu correo.",
             "user_id": user_id,
             "remaining": 0
         }), 429
