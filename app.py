@@ -145,6 +145,7 @@ def registro():
             registrar_usuario(email, email)
         except:
             pass
+        notificar_telegram(f"🟢 <b>Nuevo registro en veraxIA</b>\n👤 {email}\n📅 {datetime.now().strftime('%d/%m/%Y %H:%M')} hrs")
         resp = jsonify({"ok": True, "plan": "libre", "email": email})
         resp.set_cookie("vx_token", token, max_age=30*24*3600, httponly=True, samesite="None", secure=True)
         return resp
