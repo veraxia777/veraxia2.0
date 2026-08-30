@@ -229,9 +229,17 @@ def login():
     notificar_telegram(f"🔵 <b>Sesión iniciada en veraxIA</b>\n👤 {email}\n💎 Plan: {plan_usuario}\n📅 {datetime.now().strftime('%d/%m/%Y %H:%M')} hrs")
 
     if request.is_json:
-        cur.execute("SELECT nombre FROM usuarios WHERE email=%s", (email,))
-        nombre_row = cur.fetchone()
-        nombre_usuario = (nombre_row[0] if nombre_row and nombre_row[0] else email.split('@')[0]).strip()
+        try:
+            cur.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nombre TEXT DEFAULT ''")
+            con.commit()
+        except Exception:
+            pass
+        try:
+            cur.execute("SELECT nombre FROM usuarios WHERE email=%s", (email,))
+            nombre_row = cur.fetchone()
+            nombre_usuario = (nombre_row[0] if nombre_row and nombre_row[0] else email.split('@')[0]).strip()
+        except Exception:
+            nombre_usuario = email.split('@')[0]
         resp = jsonify({"ok": True, "plan": plan_usuario, "email": email, "nombre": nombre_usuario})
     else:
         resp = make_response(redirect("/admin"))
