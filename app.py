@@ -11,6 +11,7 @@ import hashlib
 import secrets
 from datetime import datetime, timedelta
 import os
+import urllib.request
 import mercadopago
 import requests
 
@@ -38,6 +39,25 @@ CORS(app, origins=[
 ], supports_credentials=True)
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "veraxia777520@gmail.com")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "")
+TELEGRAM_CHAT_ID = "6325653174"  # Dany M.B.
+
+def notificar_telegram(mensaje):
+    """Envía notificación instantánea a Daniela via Telegram."""
+    if not TELEGRAM_TOKEN:
+        return
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+        data = json.dumps({
+            "chat_id": TELEGRAM_CHAT_ID,
+            "text": mensaje,
+            "parse_mode": "HTML"
+        }).encode()
+        req = urllib.request.Request(url, data=data,
+            headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req, timeout=5)
+    except Exception:
+        pass  # No interrumpir el flujo si Telegram falla
 
 # ─── HELPERS ───────────────────────────────────────────────
 
@@ -164,6 +184,8 @@ def login():
                    (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), email))
     con.commit()
     token = crear_token(email)
+
+    notificar_telegram(f"🔵 <b>Sesión iniciada en veraxIA</b>\n👤 {email}\n💎 Plan: {plan_usuario}\n📅 {datetime.now().strftime('%d/%m/%Y %H:%M')} hrs")
 
     if request.is_json:
         resp = jsonify({"ok": True, "plan": plan_usuario, "email": email})
