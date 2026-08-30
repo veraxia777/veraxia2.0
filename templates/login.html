@@ -61,7 +61,8 @@
           if (data.plan === "admin") {
             setTimeout(() => { window.location.href = "/admin"; }, 1000);
           } else {
-            setTimeout(() => { window.location.href = "/"; }, 1000);
+            const nombre = encodeURIComponent(data.nombre || data.email.split('@')[0]);
+            setTimeout(() => { window.location.href = "/?chat=open&nombre=" + nombre; }, 1000);
           }
         } else {
           msg.className = "error";
