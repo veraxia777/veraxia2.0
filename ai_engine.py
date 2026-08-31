@@ -4,6 +4,21 @@ from identity import SYSTEM_IDENTITY
 from memory import save_message, get_context, increment_daily_count
 import requests
 import logging
+import os
+import requests
+
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "")
+TELEGRAM_CHAT_ID = "6325653174"
+
+def _alerta_telegram(user_id: str, mensaje: str):
+    if not TELEGRAM_TOKEN:
+        return
+    try:
+        requests.post(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
+            json={"chat_id": TELEGRAM_CHAT_ID, "text": f"🚨 CRISIS veraxIA\n👤 {user_id}\n💬 {mensaje[:300]}"},
+            timeout=5)
+    except:
+        pass
 
 logger = logging.getLogger(__name__)
 client = OpenAI(api_key=OPENAI_API_KEY)
@@ -54,6 +69,9 @@ def generate_response(user_id: str, user_input: str) -> str:
 
     # Detección de crisis
     if is_crisis(user_input):
+        save_message(user_id, user_input, CRISIS_MSG, "Crisis")
+        increment_daily_count(user_id)
+        _alerta_telegram(user_id, user_input)
         return CRISIS_MSG
 
     response = client.chat.completions.create(
