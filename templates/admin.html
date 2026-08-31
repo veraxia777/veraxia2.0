@@ -288,5 +288,73 @@ async function logout() {
 cargar();
 setInterval(cargar, 30000);
 </script>
+<!-- ════════════════════════════════════════════════════
+     PEGA ESTO EN admin.html después de la sección de planes
+     ════════════════════════════════════════════════════ -->
+
+<!-- EMOCIONES -->
+<div style="margin-top:30px; background:#1a1a2e; border-radius:12px; padding:20px;">
+  <h3 style="color:#9B7FF6; margin:0 0 15px 0;">💜 Emociones detectadas</h3>
+  <div id="emociones-grid" style="display:flex; flex-wrap:wrap; gap:10px;">
+    <p style="color:#666;">Cargando...</p>
+  </div>
+</div>
+
+<!-- ALERTAS DE CRISIS -->
+<div style="margin-top:20px; background:#1a0a0a; border-radius:12px; padding:20px; border:1px solid #cc3333;">
+  <h3 style="color:#ff6666; margin:0 0 15px 0;">🚨 Alertas de crisis</h3>
+  <div id="crisis-lista">
+    <p style="color:#666;">Cargando...</p>
+  </div>
+</div>
+
+<script>
+// Emojis por emoción
+const EMOJIS = {
+  'Tristeza':'😢','Alegría':'😊','Ansiedad':'😰','Calma':'😌',
+  'Confusión':'😕','Gratitud':'🙏','Amistad':'🤝','Alivio':'😮‍💨',
+  'Curiosidad':'🔍','Risa':'😄','Saludo':'👋','Satisfacción':'✨',
+  'Necesidad':'🫂','Incertidumbre':'🌫️','Crisis':'🚨','Interés':'👁️',
+};
+
+fetch('/admin/emociones')
+  .then(r => r.json())
+  .then(data => {
+    // Emociones
+    const grid = document.getElementById('emociones-grid');
+    if (!data.emociones || !data.emociones.length) {
+      grid.innerHTML = '<p style="color:#666">Sin datos aún — aparecerán con los próximos mensajes</p>';
+    } else {
+      grid.innerHTML = data.emociones.map(e => `
+        <div style="background:#2a2a4a;border-radius:10px;padding:12px 18px;text-align:center;min-width:110px;">
+          <div style="font-size:26px">${EMOJIS[e.emocion] || '💭'}</div>
+          <div style="color:#fff;font-weight:600;margin:4px 0">${e.emocion}</div>
+          <div style="color:#9B7FF6;font-size:20px;font-weight:bold">${e.total}</div>
+        </div>
+      `).join('');
+    }
+
+    // Crisis
+    const lista = document.getElementById('crisis-lista');
+    if (!data.crisis || !data.crisis.length) {
+      lista.innerHTML = '<p style="color:#4CAF50">✅ Sin alertas de crisis registradas</p>';
+    } else {
+      lista.innerHTML = data.crisis.map(c => `
+        <div style="background:#2a0a0a;border-radius:8px;padding:12px;margin-bottom:8px;border-left:4px solid #cc3333;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="color:#ff8888;font-size:12px;font-weight:600">${c.user_id}</span>
+            <span style="color:#666;font-size:11px">${c.fecha}</span>
+          </div>
+          <p style="color:#ddd;margin:0;font-size:13px">${c.mensaje}</p>
+        </div>
+      `).join('');
+    }
+  })
+  .catch(() => {
+    document.getElementById('emociones-grid').innerHTML = '<p style="color:#666">Error cargando datos</p>';
+    document.getElementById('crisis-lista').innerHTML = '<p style="color:#666">Error cargando alertas</p>';
+  });
+</script>
+
 </body>
 </html>
