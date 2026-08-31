@@ -409,6 +409,26 @@ def admin_upgrade():
 
 MP_ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN")
 
+
+@app.route("/admin/emociones", methods=["GET"])
+def admin_emociones():
+    email = get_email_from_request()
+    if email != ADMIN_EMAIL:
+        return jsonify({"error": "No autorizado"}), 403
+    try:
+        con, cur = get_conn()
+        cur.execute("""SELECT emocion, COUNT(*) as total FROM messages
+            WHERE role='user' AND emocion IS NOT NULL AND emocion != ''
+            GROUP BY emocion ORDER BY total DESC LIMIT 15""")
+        emociones = [{"emocion": r[0], "total": r[1]} for r in cur.fetchall()]
+        cur.execute("""SELECT user_id, content, created_at FROM messages
+            WHERE emocion='Crisis' ORDER BY id DESC LIMIT 10""")
+        crisis = [{"user_id": r[0], "mensaje": str(r[1])[:120], "fecha": str(r[2])} for r in cur.fetchall()]
+        return jsonify({"emociones": emociones, "crisis": crisis})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/crear_pago", methods=["POST"])
 def crear_pago():
     email = get_email_from_request()
