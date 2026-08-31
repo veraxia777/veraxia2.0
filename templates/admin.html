@@ -124,7 +124,8 @@
   <div class="stat green"><span class="stat-icon">✨</span><div class="stat-num" id="s-nuevos">—</div><div class="stat-label">Nuevos hoy</div></div>
   <div class="stat blue"><span class="stat-icon">💬</span><div class="stat-num" id="s-mensajes">—</div><div class="stat-label">Mensajes hoy</div></div>
   <div class="stat purple"><span class="stat-icon">💎</span><div class="stat-num" id="s-pagos">—</div><div class="stat-label">Con plan activo</div></div>
-  <div class="stat red"><span class="stat-icon">💵</span><div class="stat-num" id="s-ingresos">—</div><div class="stat-label">Ingresos USD</div></div>
+  <div class="stat red"><span class="stat-icon">💵</span><div class="stat-num" id="s-ingresos">—</div><div class="stat-label">Ingresos este mes</div></div>
+  <div class="stat" style="border-top:2px solid #e0a05c;"><span class="stat-icon">🏦</span><div class="stat-num" style="color:#e0a05c;" id="s-ingresos-total">—</div><div class="stat-label">Total histórico</div></div>
   <div class="stat" style="border-top:2px solid #5c9ce0;"><span class="stat-icon">👁</span><div class="stat-num" style="color:#5c9ce0;" id="s-visitas-hoy">—</div><div class="stat-label">Visitas hoy</div></div>
   <div class="stat" style="border-top:2px solid #9c6ce0;"><span class="stat-icon">📊</span><div class="stat-num" style="color:#9c6ce0;" id="s-conversion">—</div><div class="stat-label">Conversión</div></div>
 </div>
@@ -212,7 +213,8 @@ async function cargar() {
     document.getElementById('s-nuevos').textContent = d.nuevos_hoy || 0;
     document.getElementById('s-mensajes').textContent = d.mensajes_hoy || 0;
     document.getElementById('s-pagos').textContent = d.usuarios_pagos || 0;
-    document.getElementById('s-ingresos').textContent = '$' + (d.ingresos_total_usd || 0).toFixed(2);
+    document.getElementById('s-ingresos').textContent = '$' + (d.ingresos_mes_usd || 0).toFixed(2);
+    document.getElementById('s-ingresos-total').textContent = '$' + (d.ingresos_total_usd || 0).toFixed(2);
 
     // Planes
     const planes = d.planes || {};
