@@ -367,6 +367,12 @@ def admin_stats():
     ultimos = [{"email": r[0], "plan": r[1], "mensajes": r[2],
                 "ultimo_acceso": str(r[3]), "registro": str(r[4])} for r in cur.fetchall()]
 
+    # Ingresos mes actual
+    cur.execute("""SELECT SUM(monto_usd) FROM pagos
+        WHERE estado='activo'
+        AND DATE_TRUNC('month', fecha) = DATE_TRUNC('month', CURRENT_DATE)""")
+    ingresos_mes = cur.fetchone()[0] or 0
+    # Ingresos histórico total
     cur.execute("SELECT SUM(monto_usd) FROM pagos WHERE estado='activo'")
     ingresos = cur.fetchone()[0] or 0
 
@@ -377,7 +383,7 @@ def admin_stats():
         "mensajes_hoy": mensajes_hoy,
         "planes": planes,
         "ultimos_usuarios": ultimos,
-        "ingresos_total_usd": round(ingresos, 2)
+        "ingresos_total_usd": round(ingresos, 2), "ingresos_mes_usd": round(ingresos_mes, 2)
     })
 
 @app.route("/admin/upgrade", methods=["POST"])
