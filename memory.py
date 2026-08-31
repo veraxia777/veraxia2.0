@@ -50,8 +50,9 @@ def save_message(user_id: str, user_input: str, reply: str, emocion: str = ""):
     ahora = datetime.now().strftime("%Y-%m-%d %H:%M")
     try:
         con, cur = get_conn()
-        cur.execute("INSERT INTO messages (user_id, role, content) VALUES (%s, %s, %s)", (user_id, "user", user_input))
-        cur.execute("INSERT INTO messages (user_id, role, content) VALUES (%s, %s, %s)", (user_id, "assistant", reply))
+        cur.execute("ALTER TABLE messages ADD COLUMN IF NOT EXISTS emocion VARCHAR(50) DEFAULT ''")
+        cur.execute("INSERT INTO messages (user_id, role, content, emocion) VALUES (%s, %s, %s, %s)", (user_id, "user", user_input, emocion))
+        cur.execute("INSERT INTO messages (user_id, role, content, emocion) VALUES (%s, %s, %s, %s)", (user_id, "assistant", reply, ""))
         con.commit()
     except Exception as e:
         logger.error(f"❌ PostgreSQL save_message: {e}")
@@ -59,10 +60,10 @@ def save_message(user_id: str, user_input: str, reply: str, emocion: str = ""):
             con.rollback()
         except:
             pass
-
     if hoja_conversaciones:
         try:
-            hoja_conversaciones.append_row([ahora, str(user_id), user_input, reply, emocion])
+            reply_sheet = reply.replace('\n', ' ').replace('\r', ' ')
+            hoja_conversaciones.append_row([ahora, str(user_id), user_input, reply_sheet, emocion])
             if hoja_usuarios:
                 usuarios = hoja_usuarios.col_values(2)
                 if str(user_id) not in usuarios:
@@ -74,8 +75,6 @@ def save_message(user_id: str, user_input: str, reply: str, emocion: str = ""):
                     hoja_usuarios.update_cell(fila, 5, int(total) + 1)
         except Exception as e:
             logger.warning(f"⚠️ Sheets (no crítico): {e}")
-
-
 def get_context(user_id: str) -> list:
     try:
         con, cur = get_conn()
