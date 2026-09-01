@@ -309,12 +309,15 @@ def chat():
         if email:
             cursor.execute("UPDATE usuarios SET total_mensajes = total_mensajes + 1 WHERE email=%s", (email,))
             conn.commit()
-        remaining = 9999 if plan != "libre" else max(0, FREE_DAILY_LIMIT - get_daily_count(user_id))
+        es_premium = plan in ("alma", "alma_pro", "admin")
+        remaining = 9999 if es_premium else max(0, FREE_DAILY_LIMIT - get_daily_count(user_id))
         return jsonify({
             "reply": respuesta,
             "user_id": user_id,
             "plan": plan,
-            "remaining": remaining
+            "remaining": remaining,
+            "mensajes_restantes": None if es_premium else remaining,
+            "es_premium": es_premium
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
