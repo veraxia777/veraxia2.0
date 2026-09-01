@@ -108,6 +108,10 @@ def home():
 def privacidad():
     return render_template("privacidad.html")
 
+@app.route("/daniela", methods=["GET"])
+def daniela():
+    return render_template("daniela.html")
+
 @app.route("/api/visita", methods=["POST"])
 def registrar_visita():
     try:
