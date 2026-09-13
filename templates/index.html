@@ -565,7 +565,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);ba
           <li data-i18n="pod_li3">Ideas que expanden</li>
           <li data-i18n="pod_li4">Tecnología con propósito</li>
         </ul>
-        <a href="#" class="btn-violet">
+        <a <a href="https://www.youtube.com/@somos.veraxia" target="_blank" rel="noopener" class="btn-violet">
+🎧 <span data-i18n="pod_btn">Ver en YouTube</span>
+</a>>
           🎧 <span data-i18n="pod_btn">Escuchar episodios</span>
         </a>
       </div>
@@ -594,33 +596,23 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);ba
     <h2 style="font-family:var(--font-serif);font-size:clamp(1.5rem,3vw,2.2rem);margin:10px 0 8px;color:var(--t1);">@somos.veraxia en YouTube</h2>
     <p style="font-size:.9rem;color:var(--t2);margin-bottom:2rem;">Conversaciones sobre conciencia, tecnología y propósito.</p>
     
-    <!-- Embed último video / playlist -->
-    <div style="max-width:720px;margin:0 auto 2rem;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);">
-      <iframe 
-        width="100%" 
-        style="aspect-ratio:16/9;border:none;display:block;"
-        src="https://www.youtube.com/embed?listType=user_uploads&list=somos.veraxia&rel=0&modestbranding=1"
-        title="Podcast veraxIA"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen>
-      </iframe>
-    </div>
+    <!-- Tarjeta canal YouTube -->
+    <a href="https://www.youtube.com/@somos.veraxia" target="_blank" rel="noopener"
+      style="display:block;max-width:480px;margin:0 auto 2rem;background:linear-gradient(135deg,#1a1a2e,#0f0f1a);border:1px solid rgba(255,0,0,.3);border-radius:20px;padding:2.5rem 2rem;text-decoration:none;transition:transform .2s;box-shadow:0 8px 32px rgba(0,0,0,.2);"
+      onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='none'">
+      <div style="font-size:3rem;margin-bottom:1rem;">▶️</div>
+      <div style="font-size:1.1rem;font-weight:600;color:#fff;margin-bottom:6px;">somos.veraxia</div>
+      <div style="font-size:.85rem;color:rgba(255,255,255,.6);margin-bottom:1.5rem;">Podcast · Conversaciones · Tecnología con alma</div>
+      <span style="background:#FF0000;color:#fff;padding:10px 24px;border-radius:50px;font-size:.85rem;font-weight:600;">
+        ▶ Ver en YouTube
+      </span>
+    </a>
 
     <a href="https://www.youtube.com/@somos.veraxia" target="_blank" rel="noopener"
       style="display:inline-flex;align-items:center;gap:10px;background:#FF0000;color:#fff;padding:13px 28px;border-radius:50px;font-size:.88rem;font-weight:600;text-decoration:none;transition:opacity .2s;"
       onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
       ▶ Suscribirse al canal
     </a>
-
-    <div style="margin-top:2.5rem;background:var(--section-alt);border:1px solid var(--border);border-radius:16px;padding:2rem;max-width:560px;margin-left:auto;margin-right:auto;margin-top:2rem;">
-      <p style="font-family:var(--font-serif);font-size:1.1rem;color:var(--t1);margin-bottom:12px;font-style:italic;">
-        "¿El podcast despertó algo en ti?<br>Continúa esa conversación con veraxIA."
-      </p>
-      <a href="#" onclick="document.querySelector('.chat-btn')?.click();return false;"
-        style="display:inline-flex;align-items:center;gap:8px;background:var(--violet);color:#fff;padding:11px 24px;border-radius:50px;font-size:.85rem;font-weight:600;text-decoration:none;">
-        🧭 Probar veraxIA gratis
-      </a>
-    </div>
   </div>
 </section>
 
