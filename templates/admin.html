@@ -358,5 +358,96 @@ fetch('/admin/emociones')
   });
 </script>
 
+
+  <!-- APRENDIZAJE RSI -->
+  <div class="section">
+    <div class="sec-header">
+      <span>🧠</span>
+      <h2>Sistema de Aprendizaje</h2>
+      <span class="sec-tag tag-cyan" id="analisis-estado">En espera</span>
+    </div>
+    <div style="padding:1.5rem;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
+      
+      <div style="flex:1;min-width:220px;">
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px;">
+          Analiza todas las conversaciones históricas y construye perfiles de usuario.<br>
+          veraxIA usará estos perfiles para responder con mayor profundidad.
+        </p>
+        <button onclick="lanzarAnalisis()" 
+          style="background:var(--gold);color:#060b18;border:none;padding:10px 20px;border-radius:10px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;margin-right:10px;">
+          🚀 Analizar histórico completo
+        </button>
+        <button onclick="verPerfiles()"
+          style="background:var(--card2);border:1px solid var(--gold-border);color:var(--text);padding:10px 20px;border-radius:10px;font-family:inherit;font-size:.85rem;cursor:pointer;">
+          👤 Ver perfiles
+        </button>
+      </div>
+
+      <div id="perfiles-container" style="flex:2;min-width:300px;display:none;">
+        <table style="width:100%;border-collapse:collapse;font-size:.8rem;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--gold-border);">
+              <th style="padding:8px;text-align:left;color:var(--muted);">Usuario</th>
+              <th style="padding:8px;text-align:left;color:var(--muted);">Busca profundamente</th>
+              <th style="padding:8px;text-align:left;color:var(--muted);">Emoción frecuente</th>
+              <th style="padding:8px;text-align:left;color:var(--muted);">Sesiones</th>
+            </tr>
+          </thead>
+          <tbody id="perfiles-tabla"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+  async function lanzarAnalisis() {
+    const tag = document.getElementById('analisis-estado');
+    tag.textContent = '⏳ Procesando...';
+    tag.style.background = 'rgba(201,168,76,.15)';
+    tag.style.color = 'var(--gold)';
+    try {
+      const r = await fetch('/admin/analizar', {
+        method: 'POST',
+        headers: authHeaders()
+      });
+      const d = await r.json();
+      tag.textContent = '✅ ' + (d.mensaje || 'Iniciado');
+      tag.style.background = 'rgba(76,175,125,.15)';
+      tag.style.color = 'var(--green)';
+    } catch(e) {
+      tag.textContent = '❌ Error';
+      tag.style.color = 'var(--red)';
+    }
+  }
+
+  async function verPerfiles() {
+    const container = document.getElementById('perfiles-container');
+    const tbody = document.getElementById('perfiles-tabla');
+    container.style.display = container.style.display === 'none' ? 'block' : 'none';
+    if (container.style.display === 'none') return;
+    
+    tbody.innerHTML = '<tr><td colspan="4" style="padding:12px;color:var(--muted);">Cargando...</td></tr>';
+    try {
+      const r = await fetch('/admin/perfiles', { headers: authHeaders() });
+      const d = await r.json();
+      if (!d.perfiles || d.perfiles.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="padding:12px;color:var(--muted);">Sin perfiles aún — lanza el análisis primero.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = d.perfiles.map(p => `
+        <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
+          <td style="padding:8px;color:var(--text);font-size:.75rem;">${p.user_id.slice(0,12)}...</td>
+          <td style="padding:8px;color:var(--muted);font-size:.75rem;">${(p.busqueda||'').slice(0,60)}</td>
+          <td style="padding:8px;color:var(--muted);font-size:.75rem;">${p.emocion||'—'}</td>
+          <td style="padding:8px;color:var(--gold);font-size:.75rem;">${p.sesiones}</td>
+        </tr>
+      `).join('');
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="4" style="padding:12px;color:var(--red);">Error cargando perfiles</td></tr>';
+    }
+  }
+  </script>
+
 </body>
 </html>
