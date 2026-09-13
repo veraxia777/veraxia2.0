@@ -409,14 +409,15 @@ fetch('/admin/emociones')
     try {
       const r = await fetch('/admin/analizar', {
         method: 'POST',
-        headers: authHeaders()
+        credentials: 'include'
       });
+      if (!r.ok) { tag.textContent = '❌ No autorizado'; return; }
       const d = await r.json();
       tag.textContent = '✅ ' + (d.mensaje || 'Iniciado');
       tag.style.background = 'rgba(76,175,125,.15)';
       tag.style.color = 'var(--green)';
     } catch(e) {
-      tag.textContent = '❌ Error';
+      tag.textContent = '❌ Error: ' + e.message;
       tag.style.color = 'var(--red)';
     }
   }
@@ -429,7 +430,7 @@ fetch('/admin/emociones')
     
     tbody.innerHTML = '<tr><td colspan="4" style="padding:12px;color:var(--muted);">Cargando...</td></tr>';
     try {
-      const r = await fetch('/admin/perfiles', { headers: authHeaders() });
+      const r = await fetch('/admin/perfiles', { credentials: 'include' });
       const d = await r.json();
       if (!d.perfiles || d.perfiles.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" style="padding:12px;color:var(--muted);">Sin perfiles aún — lanza el análisis primero.</td></tr>';
