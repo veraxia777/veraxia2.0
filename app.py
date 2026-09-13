@@ -423,6 +423,44 @@ def admin_upgrade():
 MP_ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN")
 
 
+@app.route("/admin/analizar", methods=["POST"])
+def admin_analizar():
+    """Lanza el análisis de todo el histórico de conversaciones."""
+    email = get_email_from_request()
+    if email != ADMIN_EMAIL:
+        return jsonify({"error": "No autorizado"}), 403
+    try:
+        from analisis import analizar_todo_el_historico
+        import threading
+        resultado = {"mensaje": "Análisis iniciado en background", "estado": "procesando"}
+        threading.Thread(target=analizar_todo_el_historico, daemon=True).start()
+        return jsonify(resultado)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/admin/perfiles", methods=["GET"])
+def admin_perfiles():
+    """Ver perfiles acumulados de usuarios."""
+    email = get_email_from_request()
+    if email != ADMIN_EMAIL:
+        return jsonify({"error": "No autorizado"}), 403
+    try:
+        con, cur = get_conn()
+        cur.execute("""
+            SELECT user_id, busqueda_profunda, estado_emocional_frecuente, 
+                   marcos_filosoficos, total_sesiones, ultima_actualizacion
+            FROM user_profiles ORDER BY total_sesiones DESC LIMIT 20
+        """)
+        perfiles = [{
+            "user_id": r[0], "busqueda": r[1], "emocion": r[2],
+            "filosofia": r[3], "sesiones": r[4], "actualizado": str(r[5])
+        } for r in cur.fetchall()]
+        return jsonify({"perfiles": perfiles, "total": len(perfiles)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/admin/emociones", methods=["GET"])
 def admin_emociones():
     email = get_email_from_request()
