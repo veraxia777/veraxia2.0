@@ -1,25 +1,20 @@
-"""
-analisis.py — Motor de análisis y aprendizaje de veraxIA
-"""
-import json
-import logging
-import os
+"""analisis.py — Motor de aprendizaje veraxIA"""
+import json, logging, os
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 
-def _get_fresh_conn():
-    """Obtiene una conexión fresca para operaciones de análisis."""
+def _conn():
+    """Conexión PostgreSQL con autocommit — sin manejo de transacciones."""
     import psycopg2
-    DATABASE_URL = os.getenv("DATABASE_URL")
-    conn = psycopg2.connect(DATABASE_URL)
-    conn.autocommit = False
-    return conn, conn.cursor()
+    c = psycopg2.connect(os.getenv("DATABASE_URL"))
+    c.autocommit = True
+    return c
 
 
-def _llamar_ia(prompt: str, max_tokens: int = 800) -> str:
+def _ia(prompt, max_tokens=600):
     try:
         import urllib.request as ur
         data = json.dumps({
@@ -28,252 +23,178 @@ def _llamar_ia(prompt: str, max_tokens: int = 800) -> str:
             "max_tokens": max_tokens,
             "temperature": 0.3
         }).encode()
-        req = ur.Request(
-            "https://api.openai.com/v1/chat/completions",
-            data=data,
-            headers={
-                "Authorization": f"Bearer {OPENAI_API_KEY}",
-                "Content-Type": "application/json"
-            }
-        )
+        req = ur.Request("https://api.openai.com/v1/chat/completions", data=data,
+            headers={"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"})
         with ur.urlopen(req, timeout=30) as r:
-            result = json.load(r)
-            return result["choices"][0]["message"]["content"].strip()
+            return json.load(r)["choices"][0]["message"]["content"].strip()
     except Exception as e:
-        logger.error(f"❌ Error IA: {e}")
+        logger.error(f"IA error: {e}")
         return ""
 
 
 def init_tablas_analisis():
     try:
-        con, cur = _get_fresh_conn()
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS user_profiles (
-                user_id TEXT PRIMARY KEY,
-                busqueda_profunda TEXT DEFAULT '',
-                estado_emocional_frecuente TEXT DEFAULT '',
-                marcos_filosoficos TEXT DEFAULT '',
-                temas_recurrentes TEXT DEFAULT '',
-                tipo_respuesta_que_funciona TEXT DEFAULT '',
-                total_sesiones INTEGER DEFAULT 0,
-                ultima_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS conversation_insights (
-                id SERIAL PRIMARY KEY,
-                user_id TEXT,
-                fecha TEXT,
-                intencion_real TEXT DEFAULT '',
-                emocion_detectada TEXT DEFAULT '',
-                conexion_filosofica TEXT DEFAULT '',
-                calidad_estimada REAL DEFAULT 0.5,
-                analizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        con.commit()
-        con.close()
-        logger.info("✅ Tablas análisis listas")
+        c = _conn()
+        cur = c.cursor()
+        cur.execute("""CREATE TABLE IF NOT EXISTS user_profiles (
+            user_id TEXT PRIMARY KEY,
+            busqueda_profunda TEXT DEFAULT '',
+            estado_emocional_frecuente TEXT DEFAULT '',
+            marcos_filosoficos TEXT DEFAULT '',
+            temas_recurrentes TEXT DEFAULT '',
+            tipo_respuesta_que_funciona TEXT DEFAULT '',
+            total_sesiones INTEGER DEFAULT 0,
+            ultima_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )""")
+        cur.execute("""CREATE TABLE IF NOT EXISTS conversation_insights (
+            id SERIAL PRIMARY KEY,
+            user_id TEXT,
+            fecha TEXT,
+            intencion_real TEXT DEFAULT '',
+            emocion_detectada TEXT DEFAULT '',
+            conexion_filosofica TEXT DEFAULT '',
+            calidad_estimada REAL DEFAULT 0.5,
+            analizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )""")
+        c.close()
+        logger.info("✅ Tablas analisis OK")
     except Exception as e:
-        logger.error(f"❌ Error creando tablas: {e}")
+        logger.warning(f"Tablas analisis: {e}")
 
 
-def analizar_conversacion(mensajes: list) -> dict:
-    if not mensajes or len(mensajes) < 2:
+def _analizar(mensajes):
+    if len(mensajes) < 2:
         return {}
-
     texto = "\n".join([
-        f"{'Usuario' if m['role'] == 'user' else 'veraxIA'}: {m['content'][:300]}"
-        for m in mensajes[:20]
+        f"{'U' if m['role']=='user' else 'V'}: {m['content'][:200]}"
+        for m in mensajes[:16]
     ])
-
-    prompt = f"""Analiza esta conversación con veraxIA (IA filosófica para autoconocimiento).
-
-CONVERSACIÓN:
+    raw = _ia(f"""Analiza esta conversación con una IA filosófica.
 {texto}
 
-Responde SOLO en JSON con estas claves:
-{{
-  "intencion_real": "qué buscaba realmente esta persona",
-  "emocion_detectada": "estado emocional dominante en una palabra",
-  "conexion_filosofica": "corriente filosófica más afín",
-  "calidad_dialogo": 0.7,
-  "respuestas_efectivas": "tipo de respuesta que generó apertura",
-  "temas_recurrentes": "temas que aparecieron más de una vez"
-}}"""
-
-    raw = _llamar_ia(prompt)
+Responde SOLO JSON:
+{{"intencion_real":"...","emocion":"...","filosofia":"...","calidad":0.7,"tipo_respuesta":"...","temas":"..."}}""")
     try:
-        raw = raw.replace("```json", "").replace("```", "").strip()
+        raw = raw.replace("```json","").replace("```","").strip()
         return json.loads(raw)
-    except Exception:
-        return {
-            "intencion_real": "conversación general",
-            "emocion_detectada": "neutral",
-            "conexion_filosofica": "general",
-            "calidad_dialogo": 0.5,
-            "respuestas_efectivas": "reflexivas",
-            "temas_recurrentes": "varios"
-        }
+    except:
+        return {"intencion_real":"conversación","emocion":"neutral","filosofia":"general",
+                "calidad":0.5,"tipo_respuesta":"reflexiva","temas":"varios"}
 
 
 def analizar_todo_el_historico():
     try:
-        con, cur = _get_fresh_conn()
-        cur.execute("SELECT DISTINCT user_id FROM messages WHERE role='user' AND content != ''")
-        usuarios = [row[0] for row in cur.fetchall()]
-        con.close()
+        c = _conn()
+        cur = c.cursor()
+        cur.execute("SELECT DISTINCT user_id FROM messages WHERE role='user' AND content!=''")
+        usuarios = [r[0] for r in cur.fetchall()]
+        c.close()
     except Exception as e:
-        logger.error(f"❌ Error obteniendo usuarios: {e}")
+        logger.error(f"Error obteniendo usuarios: {e}")
         return {"procesados": 0, "total": 0}
 
-    logger.info(f"📊 Analizando {len(usuarios)} usuarios...")
     procesados = 0
-
-    for user_id in usuarios:
+    for uid in usuarios:
         try:
-            # Conexión fresca por cada usuario
-            con, cur = _get_fresh_conn()
+            c = _conn()
+            cur = c.cursor()
+            cur.execute("SELECT role,content FROM messages WHERE user_id=%s ORDER BY id LIMIT 40", (uid,))
+            msgs = [{"role": r[0], "content": r[1]} for r in cur.fetchall()]
+            c.close()
 
-            cur.execute("""
-                SELECT role, content FROM messages
-                WHERE user_id=%s ORDER BY id ASC LIMIT 60
-            """, (user_id,))
-            mensajes = [{"role": r[0], "content": r[1]} for r in cur.fetchall()]
-            con.close()
-
-            if len(mensajes) < 2:
+            if len(msgs) < 2:
                 continue
 
-            insight = analizar_conversacion(mensajes)
-            if not insight:
+            ins = _analizar(msgs)
+            if not ins:
                 continue
 
-            # Guardar insight con conexión fresca
-            con2, cur2 = _get_fresh_conn()
-            try:
-                cur2.execute("""
-                    INSERT INTO conversation_insights
-                    (user_id, fecha, intencion_real, emocion_detectada, conexion_filosofica, calidad_estimada)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                """, (
-                    user_id,
-                    datetime.now().strftime("%Y-%m-%d"),
-                    insight.get("intencion_real", "")[:300],
-                    insight.get("emocion_detectada", "")[:100],
-                    insight.get("conexion_filosofica", "")[:200],
-                    float(insight.get("calidad_dialogo", 0.5))
-                ))
+            c2 = _conn()
+            cur2 = c2.cursor()
+            cur2.execute("""INSERT INTO conversation_insights
+                (user_id,fecha,intencion_real,emocion_detectada,conexion_filosofica,calidad_estimada)
+                VALUES (%s,%s,%s,%s,%s,%s)""",
+                (uid, datetime.now().strftime("%Y-%m-%d"),
+                 ins.get("intencion_real","")[:300], ins.get("emocion","")[:100],
+                 ins.get("filosofia","")[:200], float(ins.get("calidad",0.5))))
 
-                # Upsert perfil del usuario
-                cur2.execute("""
-                    INSERT INTO user_profiles
-                    (user_id, busqueda_profunda, estado_emocional_frecuente,
-                     marcos_filosoficos, temas_recurrentes, tipo_respuesta_que_funciona, total_sesiones)
-                    VALUES (%s, %s, %s, %s, %s, %s, 1)
-                    ON CONFLICT (user_id) DO UPDATE SET
-                        busqueda_profunda = EXCLUDED.busqueda_profunda,
-                        estado_emocional_frecuente = EXCLUDED.estado_emocional_frecuente,
-                        marcos_filosoficos = EXCLUDED.marcos_filosoficos,
-                        temas_recurrentes = EXCLUDED.temas_recurrentes,
-                        tipo_respuesta_que_funciona = EXCLUDED.tipo_respuesta_que_funciona,
-                        total_sesiones = user_profiles.total_sesiones + 1,
-                        ultima_actualizacion = CURRENT_TIMESTAMP
-                """, (
-                    user_id,
-                    insight.get("intencion_real", "")[:300],
-                    insight.get("emocion_detectada", "")[:100],
-                    insight.get("conexion_filosofica", "")[:200],
-                    insight.get("temas_recurrentes", "")[:300],
-                    insight.get("respuestas_efectivas", "")[:300]
-                ))
-
-                con2.commit()
-                procesados += 1
-                logger.info(f"✅ {user_id}: {insight.get('intencion_real', 'N/A')[:50]}")
-
-            except Exception as e:
-                con2.rollback()
-                logger.error(f"❌ Error guardando {user_id}: {e}")
-            finally:
-                con2.close()
+            cur2.execute("""INSERT INTO user_profiles
+                (user_id,busqueda_profunda,estado_emocional_frecuente,marcos_filosoficos,
+                 temas_recurrentes,tipo_respuesta_que_funciona,total_sesiones)
+                VALUES (%s,%s,%s,%s,%s,%s,1)
+                ON CONFLICT (user_id) DO UPDATE SET
+                    busqueda_profunda=EXCLUDED.busqueda_profunda,
+                    estado_emocional_frecuente=EXCLUDED.estado_emocional_frecuente,
+                    marcos_filosoficos=EXCLUDED.marcos_filosoficos,
+                    temas_recurrentes=EXCLUDED.temas_recurrentes,
+                    tipo_respuesta_que_funciona=EXCLUDED.tipo_respuesta_que_funciona,
+                    total_sesiones=user_profiles.total_sesiones+1,
+                    ultima_actualizacion=CURRENT_TIMESTAMP""",
+                (uid, ins.get("intencion_real","")[:300], ins.get("emocion","")[:100],
+                 ins.get("filosofia","")[:200], ins.get("temas","")[:300],
+                 ins.get("tipo_respuesta","")[:300]))
+            c2.close()
+            procesados += 1
+            logger.info(f"✅ {uid}: {ins.get('intencion_real','')[:40]}")
 
         except Exception as e:
-            logger.error(f"❌ Error analizando {user_id}: {e}")
+            logger.error(f"❌ Error {uid}: {e}")
+            try: c2.close()
+            except: pass
             continue
 
-    logger.info(f"✅ Completado: {procesados}/{len(usuarios)}")
+    logger.info(f"✅ {procesados}/{len(usuarios)} procesados")
     return {"procesados": procesados, "total": len(usuarios)}
 
 
-def get_contexto_usuario(user_id: str) -> str:
+def get_contexto_usuario(user_id):
     try:
-        con, cur = _get_fresh_conn()
+        c = _conn()
+        cur = c.cursor()
         cur.execute("SELECT * FROM user_profiles WHERE user_id=%s", (user_id,))
-        perfil = cur.fetchone()
-        con.close()
-
-        if not perfil or not perfil[1]:
+        p = cur.fetchone()
+        c.close()
+        if not p or not p[1]:
             return ""
-
-        return f"""
-[MEMORIA DE SESIONES ANTERIORES — {perfil[6]} conversaciones previas]
-Lo que esta persona busca profundamente: {perfil[1]}
-Su estado emocional frecuente: {perfil[2]}
-Marcos filosóficos que resuenan con ella: {perfil[3]}
-Temas que aparecen recurrentemente: {perfil[4]}
-Tipo de respuesta que le genera mayor apertura: {perfil[5]}
-
-Usa este contexto para responder con mayor profundidad y continuidad.
-No menciones que tienes esta memoria — simplemente úsala.
-""".strip()
-    except Exception:
+        return f"""[MEMORIA — {p[6]} sesiones previas]
+Busca: {p[1]}
+Emoción frecuente: {p[2]}
+Filosofía afín: {p[3]}
+Temas recurrentes: {p[4]}
+Responde de forma: {p[5]}
+Usa este contexto sin mencionarlo."""
+    except:
         return ""
 
 
-def analizar_post_sesion(user_id: str):
+def analizar_post_sesion(user_id):
     try:
-        con, cur = _get_fresh_conn()
-        cur.execute("""
-            SELECT role, content FROM messages
-            WHERE user_id=%s ORDER BY id DESC LIMIT 20
-        """, (user_id,))
-        mensajes = [{"role": r[0], "content": r[1]} for r in cur.fetchall()]
-        mensajes.reverse()
-        con.close()
-
-        if len(mensajes) >= 4:
-            insight = analizar_conversacion(mensajes)
-            if insight:
-                con2, cur2 = _get_fresh_conn()
-                try:
-                    cur2.execute("""
-                        INSERT INTO user_profiles
-                        (user_id, busqueda_profunda, estado_emocional_frecuente,
-                         marcos_filosoficos, temas_recurrentes, tipo_respuesta_que_funciona, total_sesiones)
-                        VALUES (%s, %s, %s, %s, %s, %s, 1)
-                        ON CONFLICT (user_id) DO UPDATE SET
-                            busqueda_profunda = EXCLUDED.busqueda_profunda,
-                            estado_emocional_frecuente = EXCLUDED.estado_emocional_frecuente,
-                            marcos_filosoficos = EXCLUDED.marcos_filosoficos,
-                            temas_recurrentes = EXCLUDED.temas_recurrentes,
-                            tipo_respuesta_que_funciona = EXCLUDED.tipo_respuesta_que_funciona,
-                            total_sesiones = user_profiles.total_sesiones + 1,
-                            ultima_actualizacion = CURRENT_TIMESTAMP
-                    """, (
-                        user_id,
-                        insight.get("intencion_real", "")[:300],
-                        insight.get("emocion_detectada", "")[:100],
-                        insight.get("conexion_filosofica", "")[:200],
-                        insight.get("temas_recurrentes", "")[:300],
-                        insight.get("respuestas_efectivas", "")[:300]
-                    ))
-                    con2.commit()
-                    logger.info(f"✅ Perfil post-sesión actualizado: {user_id}")
-                except Exception as e:
-                    con2.rollback()
-                    logger.error(f"❌ Error post-sesión {user_id}: {e}")
-                finally:
-                    con2.close()
+        c = _conn()
+        cur = c.cursor()
+        cur.execute("SELECT role,content FROM messages WHERE user_id=%s ORDER BY id DESC LIMIT 20", (user_id,))
+        msgs = list(reversed([{"role": r[0], "content": r[1]} for r in cur.fetchall()]))
+        c.close()
+        if len(msgs) >= 4:
+            ins = _analizar(msgs)
+            if ins:
+                c2 = _conn()
+                cur2 = c2.cursor()
+                cur2.execute("""INSERT INTO user_profiles
+                    (user_id,busqueda_profunda,estado_emocional_frecuente,marcos_filosoficos,
+                     temas_recurrentes,tipo_respuesta_que_funciona,total_sesiones)
+                    VALUES (%s,%s,%s,%s,%s,%s,1)
+                    ON CONFLICT (user_id) DO UPDATE SET
+                        busqueda_profunda=EXCLUDED.busqueda_profunda,
+                        estado_emocional_frecuente=EXCLUDED.estado_emocional_frecuente,
+                        marcos_filosoficos=EXCLUDED.marcos_filosoficos,
+                        temas_recurrentes=EXCLUDED.temas_recurrentes,
+                        tipo_respuesta_que_funciona=EXCLUDED.tipo_respuesta_que_funciona,
+                        total_sesiones=user_profiles.total_sesiones+1,
+                        ultima_actualizacion=CURRENT_TIMESTAMP""",
+                    (user_id, ins.get("intencion_real","")[:300], ins.get("emocion","")[:100],
+                     ins.get("filosofia","")[:200], ins.get("temas","")[:300],
+                     ins.get("tipo_respuesta","")[:300]))
+                c2.close()
+                logger.info(f"✅ Post-sesión: {user_id}")
     except Exception as e:
-        logger.error(f"❌ Error post-sesión: {e}")
+        logger.error(f"❌ Post-sesión {user_id}: {e}")
