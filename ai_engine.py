@@ -74,10 +74,20 @@ def generate_response(user_id: str, user_input: str) -> str:
         _alerta_telegram(user_id, user_input)
         return CRISIS_MSG
 
+    # Enriquecer system prompt con perfil acumulado del usuario
+    system_final = SYSTEM_IDENTITY
+    if ANALISIS_ACTIVO:
+        try:
+            contexto_usuario = get_contexto_usuario(user_id)
+            if contexto_usuario:
+                system_final = SYSTEM_IDENTITY + "\n\n" + contexto_usuario
+        except Exception:
+            pass
+
     response = client.chat.completions.create(
         model=MODEL,
         messages=[
-            {"role": "system", "content": SYSTEM_IDENTITY},
+            {"role": "system", "content": system_final},
             *context,
             {"role": "user", "content": user_input}
         ],
@@ -90,6 +100,19 @@ def generate_response(user_id: str, user_input: str) -> str:
 
     save_message(user_id, user_input, reply, emocion)
     increment_daily_count(user_id)
+    
+    # Análisis post-sesión en background (cada 5 mensajes)
+    if ANALISIS_ACTIVO:
+        try:
+            from memory import get_daily_count
+            if get_daily_count(user_id) % 5 == 0:
+                threading.Thread(
+                    target=analizar_post_sesion,
+                    args=(user_id,),
+                    daemon=True
+                ).start()
+        except Exception:
+            pass
 
     if WEBHOOK_URL:
         try:
