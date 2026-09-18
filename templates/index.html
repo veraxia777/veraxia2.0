@@ -1240,7 +1240,7 @@ async function sendMsg(){var input=document.getElementById('chatInput');var text
     window.history.replaceState({},'','/');
   }
 
-// ── ONBOARDING ──────────────────────────────
+// ── ONBOARDING (funciones globales para acceso desde onclick) ──
 const OB_KEY = 'vx_ob_done';
 const PREGUNTAS = [
   { id:'estado_inicial', q:'¿Cómo te sientes en este momento?',
@@ -1254,71 +1254,55 @@ const PREGUNTAS = [
   { id:'frecuencia_estado', q:'¿Con qué frecuencia te sientes así?',
     opts:[{e:'📅',l:'Solo esta semana'},{e:'🔄',l:'Con frecuencia'},{e:'⚙️',l:'Casi siempre'},{e:'🌟',l:'Es algo nuevo para mí'}]},
 ];
-let obStep = 0;
-let obRespuestas = {};
-let obSeleccion = null;
+let obStep=0, obRespuestas={}, obSeleccion=null;
 
-function obMostrarPregunta(idx) {
-  const p = PREGUNTAS[idx];
-  document.getElementById('ob-q').textContent = p.q;
-  // Progreso
-  const prog = document.getElementById('ob-prog');
-  prog.innerHTML = PREGUNTAS.map((_,i)=>
-    `<div class="ob-dot ${i<=idx?'done':''}"></div>`).join('');
-  // Opciones
-  obSeleccion = null;
-  document.getElementById('ob-opts').innerHTML = p.opts.map(o=>
+// Exponer al scope global para que los onclick del HTML puedan llamarlas
+window.obSeleccionar=function(el,valor){
+  document.querySelectorAll('.ob-opt').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  obSeleccion=valor;
+};
+window.obSkipQ=function(){
+  obRespuestas[PREGUNTAS[obStep].id]='omitido';
+  obSiguiente();
+};
+window.obSkipAll=function(){
+  PREGUNTAS.forEach(p=>{if(!obRespuestas[p.id])obRespuestas[p.id]='omitido';});
+  obFinalizar();
+};
+window.obNext=function(){
+  obRespuestas[PREGUNTAS[obStep].id]=obSeleccion||'omitido';
+  obSiguiente();
+};
+
+function obSiguiente(){
+  obStep++;
+  if(obStep<PREGUNTAS.length) obMostrarPregunta(obStep);
+  else obFinalizar();
+}
+
+function obMostrarPregunta(idx){
+  const p=PREGUNTAS[idx];
+  document.getElementById('ob-q').textContent=p.q;
+  document.getElementById('ob-prog').innerHTML=
+    PREGUNTAS.map((_,i)=>`<div class="ob-dot ${i<=idx?'done':''}"></div>`).join('');
+  obSeleccion=null;
+  document.getElementById('ob-opts').innerHTML=p.opts.map(o=>
     `<button class="ob-opt" onclick="obSeleccionar(this,'${o.l}')">
       <span class="ob-opt-emoji">${o.e}</span>${o.l}
     </button>`).join('');
-  // Botón
-  const nextBtn = document.getElementById('ob-next');
-  nextBtn.textContent = idx < PREGUNTAS.length-1 ? 'Continuar →' : 'Comenzar conversación ✨';
+  document.getElementById('ob-next').textContent=
+    idx<PREGUNTAS.length-1?'Continuar →':'Comenzar conversación ✨';
 }
 
-function obSeleccionar(el, valor) {
-  document.querySelectorAll('.ob-opt').forEach(b=>b.classList.remove('sel'));
-  el.classList.add('sel');
-  obSeleccion = valor;
-}
-
-function obSkipQ() {
-  obRespuestas[PREGUNTAS[obStep].id] = 'omitido';
-  obSiguiente();
-}
-
-function obSkipAll() {
-  PREGUNTAS.forEach(p=>{ if(!obRespuestas[p.id]) obRespuestas[p.id]='omitido'; });
-  obFinalizar();
-}
-
-function obNext() {
-  if (obSeleccion) obRespuestas[PREGUNTAS[obStep].id] = obSeleccion;
-  else obRespuestas[PREGUNTAS[obStep].id] = 'omitido';
-  obSiguiente();
-}
-
-function obSiguiente() {
-  obStep++;
-  if (obStep < PREGUNTAS.length) {
-    obMostrarPregunta(obStep);
-  } else {
-    obFinalizar();
-  }
-}
-
-async function obFinalizar() {
-  localStorage.setItem(OB_KEY, '1');
-  // Guardar en backend
-  try {
-    await fetch('/api/onboarding', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      credentials:'include',
-      body:JSON.stringify({user_id:userId, ...obRespuestas})
+async function obFinalizar(){
+  localStorage.setItem(OB_KEY,'1');
+  try{
+    await fetch('/api/onboarding',{
+      method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',
+      body:JSON.stringify({user_id:userId,...obRespuestas})
     });
-  } catch(e) {}
-  // Mostrar chat
+  }catch(e){}
   document.getElementById('vx-ob').classList.remove('active');
   document.getElementById('vx-msgs').style.display='flex';
   document.getElementById('vx-typing').style.display='none';
@@ -1326,8 +1310,8 @@ async function obFinalizar() {
   setTimeout(()=>addMsg('Hola 🤍 Ya sé un poco más sobre ti. ¿En qué te acompaño hoy?',false),300);
 }
 
-function obIniciar() {
-  obStep=0; obRespuestas={};
+function obIniciar(){
+  obStep=0;obRespuestas={};
   document.getElementById('vx-ob').classList.add('active');
   document.getElementById('vx-msgs').style.display='none';
   document.getElementById('vx-typing').style.display='none';
