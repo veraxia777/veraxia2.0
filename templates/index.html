@@ -1195,12 +1195,9 @@ async function sendMsg(){var input=document.getElementById('chatInput');var text
     isOpen=!isOpen;
     panel.classList.toggle('open',isOpen);
     if(isOpen){
-      const vieneDelLogin=new URLSearchParams(window.location.search).get('chat')==='open';
-      if(!localStorage.getItem(OB_KEY) && msgs.children.length===0 && !vieneDelLogin){
+      if(!localStorage.getItem(OB_KEY) && msgs.children.length===0){
         obIniciar();
       } else {
-        // Si viene del login, marcar onboarding como visto para no interrumpir
-        if(vieneDelLogin) localStorage.setItem(OB_KEY,'1');
         input.focus();
       }
     }
@@ -1233,14 +1230,21 @@ async function sendMsg(){var input=document.getElementById('chatInput');var text
   const params=new URLSearchParams(window.location.search);
   if(params.get('chat')==='open'){
     const nombre=decodeURIComponent(params.get('nombre')||'');
+    // Capitalizar nombre y limpiar números del final si es email-based
+    const nombreDisplay=nombre
+      ? nombre.replace(/[0-9]+$/,'').replace(/^./,c=>c.toUpperCase()) || nombre
+      : '';
+    // CRÍTICO: marcar onboarding como hecho ANTES de replaceState
+    // así vxToggle no lanza el onboarding y no hay doble saludo
+    localStorage.setItem('vx_ob_done','1');
+    window.history.replaceState({},'','/');
     setTimeout(()=>{
       vxToggle();
-      const saludo=nombre
-        ?'¡Hola, '+nombre+'! Qué bueno verte de vuelta 🤍 ¿En qué te acompaño hoy?'
+      const saludo=nombreDisplay
+        ?'¡Hola, '+nombreDisplay+'! Qué bueno verte de vuelta 🤍 ¿En qué te acompaño hoy?'
         :'Hola 🤍 ¿En qué te acompaño hoy?';
       setTimeout(()=>addMsg(saludo,false),400);
     },300);
-    window.history.replaceState({},'','/');
   }
 
 // ── ONBOARDING (funciones globales para acceso desde onclick) ──
