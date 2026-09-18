@@ -174,14 +174,15 @@ def registro():
     data = request.get_json()
     email = data.get("email", "").strip().lower()
     password = data.get("password", "").strip()
+    origen = data.get("utm_source", "").strip()[:50]
 
     if not email or not password:
         return jsonify({"error": "Email y contraseña requeridos"}), 400
 
     try:
         cursor.execute(
-            "INSERT INTO usuarios (email, password_hash) VALUES (%s, %s)",
-            (email, hash_password(password))
+            "INSERT INTO usuarios (email, password_hash, origen) VALUES (%s, %s, %s)",
+            (email, hash_password(password), origen)
         )
         conn.commit()
         token = crear_token(email)
@@ -235,6 +236,7 @@ def login():
     if request.is_json:
         try:
             cur.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nombre TEXT DEFAULT ''")
+            cur.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS origen TEXT DEFAULT ''")
             con.commit()
         except Exception:
             pass
@@ -368,11 +370,12 @@ def admin_stats():
     planes = dict(cur.fetchall())
 
     cur.execute("""
-        SELECT email, plan, total_mensajes, ultimo_acceso, fecha_registro
+        SELECT email, plan, total_mensajes, ultimo_acceso, fecha_registro, origen
         FROM usuarios ORDER BY ultimo_acceso DESC LIMIT 20
     """)
     ultimos = [{"email": r[0], "plan": r[1], "mensajes": r[2],
-                "ultimo_acceso": str(r[3]), "registro": str(r[4])} for r in cur.fetchall()]
+                "ultimo_acceso": str(r[3]), "registro": str(r[4]),
+                "origen": r[5] or ""} for r in cur.fetchall()]
 
     # Ingresos mes actual
     cur.execute("""SELECT SUM(monto_usd) FROM pagos
