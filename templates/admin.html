@@ -495,7 +495,7 @@ async function verPerfiles(){
 
 async function logout(){await fetch('/logout',{method:'POST'});window.location='/login';}
 cargar();
-setInterval(cargar,30000);
+setInterval(cargar,120000); // cada 2 minutos
 </script>
 </body>
 </html>
