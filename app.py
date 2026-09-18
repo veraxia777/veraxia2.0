@@ -472,7 +472,7 @@ def admin_emociones():
             WHERE role='user' AND emocion IS NOT NULL AND emocion != ''
             GROUP BY emocion ORDER BY total DESC LIMIT 15""")
         emociones = [{"emocion": r[0], "total": r[1]} for r in cur.fetchall()]
-        cur.execute("""SELECT user_id, content, created_at FROM messages
+        cur.execute("""SELECT user_id, content, timestamp FROM messages
             WHERE emocion='Crisis' ORDER BY id DESC LIMIT 10""")
         crisis = [{"user_id": r[0], "mensaje": str(r[1])[:120], "fecha": str(r[2])} for r in cur.fetchall()]
         return jsonify({"emociones": emociones, "crisis": crisis})
