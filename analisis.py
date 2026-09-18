@@ -256,19 +256,60 @@ def get_contexto_usuario(user_id):
     try:
         c = _conn()
         cur = c.cursor()
-        cur.execute("SELECT * FROM user_profiles WHERE user_id=%s", (user_id,))
+        cur.execute("""
+            SELECT user_id, busqueda_profunda, estado_emocional_frecuente,
+                   marcos_filosoficos, temas_recurrentes, tipo_respuesta_que_funciona,
+                   total_sesiones,
+                   estado_inicial, busqueda_principal, area_vida,
+                   estilo_conversacion, frecuencia_estado, onboarding_completado
+            FROM user_profiles WHERE user_id=%s
+        """, (user_id,))
         p = cur.fetchone()
         c.close()
-        if not p or not p[1] or p[1].strip() in _VALORES_FALSOS:
+        if not p:
             return ""
-        return f"""[PERFIL — {p[6]} sesiones previas]
-Lo que busca: {p[1]}
-Emocion frecuente: {p[2]}
-Filosofia afin: {p[3]}
-Temas recurrentes: {p[4]}
-Tipo de respuesta que funciona: {p[5]}
-Usa este contexto sin mencionarlo directamente."""
-    except:
+
+        partes = []
+
+        # Datos del onboarding (declarados por el usuario)
+        ob_completado = p[12] if len(p) > 12 else False
+        if ob_completado:
+            ob_parts = []
+            if p[7] and p[7] != 'omitido':
+                ob_parts.append(f"Estado emocional al llegar: {p[7]}")
+            if p[8] and p[8] != 'omitido':
+                ob_parts.append(f"Lo que busca en veraxIA: {p[8]}")
+            if p[9] and p[9] != 'omitido':
+                ob_parts.append(f"Area de vida a explorar: {p[9]}")
+            if p[10] and p[10] != 'omitido':
+                ob_parts.append(f"Estilo de conversacion preferido: {p[10]}")
+            if p[11] and p[11] != 'omitido':
+                ob_parts.append(f"Frecuencia del estado: {p[11]}")
+            if ob_parts:
+                partes.append("[LO QUE ESTA PERSONA DECLARO AL LLEGAR]\n" + "\n".join(ob_parts))
+
+        # Datos del RSI (aprendidos de conversaciones)
+        if p[6] and int(p[6]) > 0:
+            rsi_parts = []
+            if p[1] and p[1].strip() not in _VALORES_FALSOS:
+                rsi_parts.append(f"Busqueda profunda: {p[1]}")
+            if p[2] and p[2].strip():
+                rsi_parts.append(f"Emocion frecuente: {p[2]}")
+            if p[3] and p[3].strip():
+                rsi_parts.append(f"Marco filosofico afin: {p[3]}")
+            if p[4] and p[4].strip():
+                rsi_parts.append(f"Temas recurrentes: {p[4]}")
+            if p[5] and p[5].strip():
+                rsi_parts.append(f"Tipo de respuesta que funciona: {p[5]}")
+            if rsi_parts:
+                partes.append(f"[LO QUE VERAXIA APRENDIO — {p[6]} sesiones]\n" + "\n".join(rsi_parts))
+
+        if not partes:
+            return ""
+
+        return "\n\n".join(partes) + "\n\nUsa este contexto para responder con mayor profundidad sin mencionarlo directamente."
+    except Exception as e:
+        logger.warning(f"[contexto] {e}")
         return ""
 
 
