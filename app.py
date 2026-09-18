@@ -464,6 +464,79 @@ def admin_perfiles():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/admin/audiencia", methods=["GET"])
+def admin_audiencia():
+    email = get_email_from_request()
+    if email != ADMIN_EMAIL:
+        return jsonify({"error": "No autorizado"}), 403
+    try:
+        con, cur = get_conn()
+
+        # 1. Emociones frecuentes (top 10)
+        cur.execute("""
+            SELECT emocion, COUNT(*) as total FROM messages
+            WHERE role='user' AND emocion IS NOT NULL AND emocion != ''
+            GROUP BY emocion ORDER BY total DESC LIMIT 10
+        """)
+        emociones = [{"emocion": r[0], "total": r[1]} for r in cur.fetchall()]
+
+        # 2. Mensajes por hora del dia
+        cur.execute("""
+            SELECT EXTRACT(HOUR FROM timestamp)::int as hora, COUNT(*) as total
+            FROM messages WHERE role='user'
+            GROUP BY hora ORDER BY hora
+        """)
+        por_hora = [{"hora": r[0], "total": r[1]} for r in cur.fetchall()]
+
+        # 3. Mensajes por dia de la semana
+        cur.execute("""
+            SELECT TO_CHAR(timestamp, 'D')::int as dow,
+                   TO_CHAR(timestamp, 'Day') as nombre,
+                   COUNT(*) as total
+            FROM messages WHERE role='user'
+            GROUP BY dow, nombre ORDER BY dow
+        """)
+        por_dia = [{"dia": r[1].strip(), "total": r[2]} for r in cur.fetchall()]
+
+        # 4. Origen de usuarios (UTM)
+        cur.execute("""
+            SELECT COALESCE(NULLIF(origen,''), 'directo') as origen,
+                   COUNT(*) as total
+            FROM usuarios
+            GROUP BY origen ORDER BY total DESC
+        """)
+        origenes = [{"origen": r[0], "total": r[1]} for r in cur.fetchall()]
+
+        # 5. Temas RSI (de user_profiles)
+        cur.execute("""
+            SELECT temas_recurrentes FROM user_profiles
+            WHERE temas_recurrentes IS NOT NULL AND temas_recurrentes != ''
+            LIMIT 30
+        """)
+        temas_raw = [r[0] for r in cur.fetchall()]
+
+        # 6. Conversion por origen
+        cur.execute("""
+            SELECT COALESCE(NULLIF(origen,''), 'directo') as origen,
+                   COUNT(*) as total,
+                   SUM(CASE WHEN plan != 'libre' THEN 1 ELSE 0 END) as pagos
+            FROM usuarios
+            GROUP BY origen ORDER BY total DESC
+        """)
+        conv_origen = [{"origen": r[0], "total": r[1], "pagos": r[2]} for r in cur.fetchall()]
+
+        return jsonify({
+            "emociones": emociones,
+            "por_hora": por_hora,
+            "por_dia": por_dia,
+            "origenes": origenes,
+            "temas_rsi": temas_raw,
+            "conversion_por_origen": conv_origen
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/admin/emociones", methods=["GET"])
 def admin_emociones():
     email = get_email_from_request()
