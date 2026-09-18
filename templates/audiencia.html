@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>veraxIA — Audiencia</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#fffdf7;--card:#ffffff;--card2:#faf7ee;
+  --border:rgba(184,134,11,0.18);--border2:rgba(184,134,11,0.1);
+  --gold:#b8860b;--gold-s:rgba(184,134,11,0.08);--gold-m:rgba(184,134,11,0.15);
+  --tx:#1c1a14;--tx2:#3d3520;--mu:#8b7355;
+  --green:#15803d;--green-s:rgba(21,128,61,0.08);
+  --red:#dc2626;--red-s:rgba(220,38,38,0.08);
+  --blue:#1d4ed8;--blue-s:rgba(29,78,216,0.08);
+  --purple:#7c3aed;--purple-s:rgba(124,58,237,0.08);
+  --pink:#db2777;--pink-s:rgba(219,39,119,0.08);
+  --orange:#ea580c;--orange-s:rgba(234,88,12,0.08);
+  --sh:0 1px 4px rgba(184,134,11,0.08),0 4px 20px rgba(0,0,0,0.06);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
+.topbar{background:var(--card);border-bottom:2px solid var(--border);padding:14px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;box-shadow:var(--sh);}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-ico{width:36px;height:36px;border-radius:50%;background:var(--gold-m);border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-size:18px;}
+.brand-name{font-size:1.05rem;font-weight:800;color:var(--gold);}
+.brand-sub{font-size:.65rem;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;}
+.top-right{display:flex;align-items:center;gap:10px;}
+.tbtn{border-radius:20px;padding:7px 16px;font-size:.78rem;cursor:pointer;font-family:inherit;font-weight:600;transition:all .15s;}
+.tbtn-gold{background:var(--gold);color:#fff;border:none;}
+.tbtn-out{background:none;border:1px solid var(--border);color:var(--mu);}
+.tbtn:hover{opacity:.82;}
+.page{padding:24px 28px;max-width:1400px;margin:0 auto;}
+
+/* INSIGHT BANNER */
+.insight{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1px solid rgba(184,134,11,0.25);
+  border-radius:16px;padding:18px 22px;margin-bottom:24px;
+  display:flex;align-items:flex-start;gap:14px;}
+.insight-ico{font-size:1.8rem;flex-shrink:0;margin-top:2px;}
+.insight-title{font-size:.9rem;font-weight:800;color:var(--gold);margin-bottom:4px;}
+.insight-text{font-size:.82rem;color:var(--tx2);line-height:1.5;}
+.insight-empty{opacity:.5;font-style:italic;}
+
+/* GRID */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:18px;}
+@media(max-width:1000px){.grid2,.grid3{grid-template-columns:1fr 1fr;}}
+@media(max-width:640px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+/* CHART PANELS */
+.cpanel{background:var(--card);border:1px solid var(--border);border-radius:16px;
+  overflow:hidden;box-shadow:var(--sh);}
+.ch{padding:14px 20px;border-bottom:1px solid var(--border2);background:var(--card2);
+  display:flex;align-items:center;gap:8px;}
+.ch h2{font-size:.82rem;font-weight:800;color:var(--tx2);text-transform:uppercase;letter-spacing:.08em;}
+.ch-tag{font-size:.67rem;padding:2px 8px;border-radius:20px;margin-left:auto;font-weight:700;}
+.ch-tag.gold{background:var(--gold-m);color:var(--gold);}
+.ch-tag.blue{background:var(--blue-s);color:var(--blue);}
+.ch-tag.green{background:var(--green-s);color:var(--green);}
+.ch-tag.purple{background:var(--purple-s);color:var(--purple);}
+.ch-tag.pink{background:var(--pink-s);color:var(--pink);}
+.ch-tag.orange{background:var(--orange-s);color:var(--orange);}
+.chart-wrap{padding:20px;position:relative;}
+
+/* TEMAS */
+.temas-wrap{padding:16px 20px;display:flex;flex-wrap:wrap;gap:8px;}
+.tema-pill{background:var(--purple-s);color:var(--purple);border:1px solid rgba(124,58,237,.15);
+  border-radius:20px;padding:5px 12px;font-size:.78rem;font-weight:600;}
+
+/* CONV TABLA */
+.conv-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.conv-table th{padding:8px 16px;text-align:left;font-size:.67rem;font-weight:800;
+  color:var(--mu);text-transform:uppercase;letter-spacing:.1em;
+  border-bottom:2px solid var(--border2);background:var(--card2);}
+.conv-table td{padding:10px 16px;border-bottom:1px solid var(--border2);color:var(--tx2);}
+.conv-table tr:hover td{background:var(--gold-s);}
+.bar-cell{display:flex;align-items:center;gap:8px;}
+.bar-bg{flex:1;height:6px;background:var(--border2);border-radius:3px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;background:var(--gold);transition:width .5s;}
+
+.empty{padding:32px;text-align:center;color:var(--mu);font-size:.82rem;}
+.upd{font-size:.72rem;color:var(--mu);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-ico">📊</div>
+    <div>
+      <div class="brand-name">verax<span style="color:var(--tx)">IA</span> — Audiencia</div>
+      <div class="brand-sub">Panel de contenido estratégico</div>
+    </div>
+  </div>
+  <div class="top-right">
+    <span class="upd" id="upd"></span>
+    <button class="tbtn tbtn-gold" onclick="cargar()">↻ Actualizar</button>
+    <button class="tbtn tbtn-out" onclick="window.location='/admin'">← Panel admin</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- INSIGHT AUTOMÁTICO -->
+  <div class="insight" id="insight-box">
+    <div class="insight-ico">💡</div>
+    <div>
+      <div class="insight-title">Cargando insight de audiencia...</div>
+      <div class="insight-text insight-empty">Analizando los datos de tus usuarios</div>
+    </div>
+  </div>
+
+  <!-- FILA 1: Emociones + Por hora -->
+  <div class="grid2">
+    <div class="cpanel">
+      <div class="ch"><span>💜</span><h2>Emociones de tu audiencia</h2>
+        <span class="ch-tag purple">qué siente</span></div>
+      <div class="chart-wrap"><canvas id="chart-emociones" height="180"></canvas></div>
+    </div>
+    <div class="cpanel">
+      <div class="ch"><span>🕐</span><h2>Hora del día más activa</h2>
+        <span class="ch-tag blue">cuándo conectan</span></div>
+      <div class="chart-wrap"><canvas id="chart-horas" height="180"></canvas></div>
+    </div>
+  </div>
+
+  <!-- FILA 2: Días + Origen -->
+  <div class="grid2">
+    <div class="cpanel">
+      <div class="ch"><span>📅</span><h2>Día de la semana</h2>
+        <span class="ch-tag gold">cuándo publicar</span></div>
+      <div class="chart-wrap"><canvas id="chart-dias" height="180"></canvas></div>
+    </div>
+    <div class="cpanel">
+      <div class="ch"><span>📱</span><h2>De dónde llegaron</h2>
+        <span class="ch-tag green">origen UTM</span></div>
+      <div class="chart-wrap"><canvas id="chart-origen" height="180"></canvas></div>
+    </div>
+  </div>
+
+  <!-- FILA 3: Conversión por origen + Temas RSI -->
+  <div class="grid2">
+    <div class="cpanel">
+      <div class="ch"><span>💰</span><h2>Conversión por red social</h2>
+        <span class="ch-tag orange">qué red convierte</span></div>
+      <div class="chart-wrap" style="padding:0;">
+        <table class="conv-table">
+          <thead><tr><th>Origen</th><th>Usuarios</th><th>Pagos</th><th>Conversión</th><th></th></tr></thead>
+          <tbody id="conv-tbody"><tr><td colspan="5" class="empty">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="cpanel">
+      <div class="ch"><span>🔖</span><h2>Temas del RSI</h2>
+        <span class="ch-tag pink">sobre qué hablar</span></div>
+      <div class="temas-wrap" id="temas-wrap">
+        <div class="empty">Cargando...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let charts = {};
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+const CHART_DEFAULTS = {
+  plugins: { legend: { display: false },
+    tooltip: { backgroundColor:'#1c1a14', titleColor:'#f0ece0',
+      bodyColor:'#c4a97a', borderColor:'rgba(184,134,11,0.3)', borderWidth:1 }},
+  scales: {
+    x: { grid:{color:'rgba(184,134,11,0.07)'},
+         ticks:{color:'#8b7355',font:{size:11}}, border:{display:false} },
+    y: { grid:{color:'rgba(184,134,11,0.07)'},
+         ticks:{color:'#8b7355',font:{size:11},precision:0}, border:{display:false} }
+  }
+};
+
+const COLORES = [
+  '#7c3aed','#1d4ed8','#15803d','#b8860b','#db2777',
+  '#ea580c','#0891b2','#dc2626','#65a30d','#d97706'
+];
+
+function origenIcon(o) {
+  const m = {instagram:'📸',tiktok:'🎵',facebook:'👤',youtube:'▶️',directo:'🌐'};
+  return (m[o.toLowerCase()] || '🔗') + ' ' + o;
+}
+
+function generarInsight(data) {
+  const box = document.getElementById('insight-box');
+  let insight = '';
+
+  // Emoción más frecuente
+  if (data.emociones && data.emociones.length) {
+    const top = data.emociones[0];
+    const contenido = {
+      'Curiosidad':'crea contenido filosófico y de preguntas profundas',
+      'Ansiedad':'publica mensajes de calma y perspectiva',
+      'Tristeza':'comparte historias de transformación y esperanza',
+      'Alegría':'celebra con tu comunidad y comparte logros',
+      'Calma':'profundiza con reflexiones largas y podcasts',
+      'Gratitud':'comparte impacto real de la plataforma',
+    };
+    const accion = contenido[top.emocion] || 'crea contenido que conecte con esta emoción';
+    insight = `La emoción más frecuente de tu audiencia es <strong>${top.emocion}</strong> (${top.total} veces). Esto significa que deberías ${accion}.`;
+  }
+
+  // Hora pico
+  if (data.por_hora && data.por_hora.length) {
+    const pico = data.por_hora.reduce((a,b) => a.total>b.total?a:b);
+    const h = pico.hora;
+    const periodo = h<12?'la mañana':h<18?'la tarde':'la noche';
+    if (insight) insight += ` Tu audiencia es más activa a las <strong>${h}:00 hrs (${periodo})</strong> — ese es tu horario ideal para publicar.`;
+  }
+
+  // Red social top
+  if (data.origenes && data.origenes.length && data.origenes[0].origen !== 'directo') {
+    const top = data.origenes[0];
+    insight += ` La red que más trae usuarios es <strong>${top.origen}</strong>.`;
+  }
+
+  if (!insight) {
+    insight = 'Aún no hay suficientes datos para generar insights. Los gráficos se llenarán con los próximos mensajes del chat.';
+    box.style.opacity = '.6';
+  }
+
+  box.innerHTML = `
+    <div class="insight-ico">💡</div>
+    <div>
+      <div class="insight-title">Insight de audiencia</div>
+      <div class="insight-text">${insight}</div>
+    </div>`;
+}
+
+async function cargar() {
+  try {
+    const r = await fetch('/admin/audiencia');
+    if (!r.ok) { window.location='/login'; return; }
+    const d = await r.json();
+
+    generarInsight(d);
+
+    // 1. EMOCIONES
+    destroyChart('emociones');
+    if (d.emociones && d.emociones.length) {
+      charts['emociones'] = new Chart(
+        document.getElementById('chart-emociones').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: d.emociones.map(e=>e.emocion),
+          datasets:[{ data: d.emociones.map(e=>e.total),
+            backgroundColor: COLORES.slice(0,d.emociones.length).map(c=>c+'33'),
+            borderColor: COLORES.slice(0,d.emociones.length),
+            borderWidth:2, borderRadius:8 }]
+        },
+        options: { ...CHART_DEFAULTS, responsive:true,
+          plugins:{ ...CHART_DEFAULTS.plugins,
+            tooltip:{ ...CHART_DEFAULTS.plugins.tooltip,
+              callbacks:{label:c=>' '+c.parsed.y+' veces'}}}}
+      });
+    } else {
+      document.getElementById('chart-emociones').parentElement.innerHTML =
+        '<div class="empty">Sin datos de emociones aún — aparecerán con los próximos chats</div>';
+    }
+
+    // 2. POR HORA
+    destroyChart('horas');
+    const horas = Array.from({length:24},(_,i)=>i);
+    const horasData = horas.map(h => {
+      const f = (d.por_hora||[]).find(x=>x.hora===h);
+      return f ? f.total : 0;
+    });
+    charts['horas'] = new Chart(
+      document.getElementById('chart-horas').getContext('2d'), {
+      type:'line',
+      data:{
+        labels: horas.map(h=>h+':00'),
+        datasets:[{ data:horasData, borderColor:'#1d4ed8', backgroundColor:'rgba(29,78,216,0.08)',
+          borderWidth:2.5, pointRadius:3, pointBackgroundColor:'#1d4ed8',
+          tension:0.4, fill:true }]
+      },
+      options:{ ...CHART_DEFAULTS, responsive:true,
+        plugins:{...CHART_DEFAULTS.plugins,
+          tooltip:{...CHART_DEFAULTS.plugins.tooltip,
+            callbacks:{label:c=>' '+c.parsed.y+' mensajes'}}}}
+    });
+
+    // 3. POR DÍA
+    destroyChart('dias');
+    const diasOrden = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const diasES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const diasData = diasOrden.map(d2 => {
+      const f = (d.por_dia||[]).find(x=>x.dia.toLowerCase().startsWith(d2.toLowerCase().substring(0,3)));
+      return f ? f.total : 0;
+    });
+    charts['dias'] = new Chart(
+      document.getElementById('chart-dias').getContext('2d'), {
+      type:'bar',
+      data:{
+        labels: diasES,
+        datasets:[{ data:diasData,
+          backgroundColor: diasData.map(v=>v===Math.max(...diasData)?'#b8860b':'rgba(184,134,11,0.2)'),
+          borderColor: diasData.map(v=>v===Math.max(...diasData)?'#b8860b':'rgba(184,134,11,0.4)'),
+          borderWidth:2, borderRadius:8 }]
+      },
+      options:{ ...CHART_DEFAULTS, responsive:true }
+    });
+
+    // 4. ORIGEN (doughnut)
+    destroyChart('origen');
+    const origenes = d.origenes || [];
+    if (origenes.length) {
+      charts['origen'] = new Chart(
+        document.getElementById('chart-origen').getContext('2d'), {
+        type:'doughnut',
+        data:{
+          labels: origenes.map(o=>origenIcon(o.origen)),
+          datasets:[{ data:origenes.map(o=>o.total),
+            backgroundColor: COLORES.slice(0,origenes.length).map(c=>c+'cc'),
+            borderColor:'#fffdf7', borderWidth:3 }]
+        },
+        options:{ responsive:true, cutout:'65%',
+          plugins:{ legend:{ display:true, position:'right',
+            labels:{color:'#3d3520',font:{size:11},padding:12}},
+          tooltip:{ backgroundColor:'#1c1a14',titleColor:'#f0ece0',bodyColor:'#c4a97a',
+            callbacks:{label:c=>' '+c.parsed+' usuarios'}}}}
+      });
+    } else {
+      document.getElementById('chart-origen').parentElement.innerHTML =
+        '<div class="empty">Sin datos UTM aún — comparte los links con ?utm_source=red</div>';
+    }
+
+    // 5. CONVERSIÓN POR ORIGEN
+    const conv = d.conversion_por_origen || [];
+    const maxT = Math.max(...conv.map(c=>c.total), 1);
+    document.getElementById('conv-tbody').innerHTML = conv.length
+      ? conv.map(c => {
+          const pct = c.total > 0 ? Math.round((c.pagos/c.total)*100) : 0;
+          const barW = Math.round((c.total/maxT)*100);
+          const color = pct>=10?'var(--green)':pct>0?'var(--gold)':'var(--mu)';
+          return `<tr>
+            <td style="font-weight:700">${origenIcon(c.origen)}</td>
+            <td>
+              <div class="bar-cell">
+                <span style="min-width:24px;font-weight:700;color:var(--tx)">${c.total}</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:${barW}%"></div></div>
+              </div>
+            </td>
+            <td style="font-weight:700;color:var(--gold)">${c.pagos}</td>
+            <td style="font-weight:800;color:${color}">${pct}%</td>
+            <td style="font-size:.7rem;color:var(--mu)">${pct>=10?'🔥 Convierte bien':pct>0?'✨ Potencial':'—'}</td>
+          </tr>`;
+        }).join('')
+      : '<tr><td colspan="5" class="empty">Sin datos aún</td></tr>';
+
+    // 6. TEMAS RSI
+    const temas = d.temas_rsi || [];
+    if (temas.length) {
+      // Parsear y contar temas
+      const conteo = {};
+      temas.forEach(t => {
+        t.split(',').forEach(tema => {
+          const k = tema.trim().toLowerCase();
+          if (k && k.length > 3) conteo[k] = (conteo[k]||0) + 1;
+        });
+      });
+      const sorted = Object.entries(conteo).sort((a,b)=>b[1]-a[1]).slice(0,20);
+      document.getElementById('temas-wrap').innerHTML = sorted.length
+        ? sorted.map(([t,n])=>`<span class="tema-pill">${t} <strong style="opacity:.6">${n}</strong></span>`).join('')
+        : '<div class="empty">Lanza el análisis RSI primero para ver temas</div>';
+    } else {
+      document.getElementById('temas-wrap').innerHTML =
+        '<div class="empty">Lanza el análisis RSI primero para ver los temas de tu audiencia</div>';
+    }
+
+    document.getElementById('upd').textContent =
+      'Actualizado ' + new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
+
+  } catch(e) { console.error(e); }
+}
+
+cargar();
+setInterval(cargar, 60000);
+</script>
+</body>
+</html>
