@@ -552,9 +552,11 @@ def admin_emociones():
         return jsonify({"error": "No autorizado"}), 403
     try:
         con, cur = get_conn()
-        cur.execute("""SELECT emocion, COUNT(*) as total FROM messages
+        cur.execute("""SELECT TRIM(TRAILING '.' FROM TRIM(emocion)) as emocion,
+                   COUNT(*) as total FROM messages
             WHERE role='user' AND emocion IS NOT NULL AND emocion != ''
-            GROUP BY emocion ORDER BY total DESC LIMIT 15""")
+            GROUP BY TRIM(TRAILING '.' FROM TRIM(emocion))
+            ORDER BY total DESC LIMIT 15""")
         emociones = [{"emocion": r[0], "total": r[1]} for r in cur.fetchall()]
         cur.execute("""SELECT user_id, content, timestamp FROM messages
             WHERE emocion='Crisis' ORDER BY id DESC LIMIT 10""")
