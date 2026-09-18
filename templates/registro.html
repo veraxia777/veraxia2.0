@@ -29,6 +29,10 @@
   </div>
 
   <script>
+    // Guardar utm_source al llegar a esta página
+    const _utm = new URLSearchParams(window.location.search).get('utm_source');
+    if (_utm) sessionStorage.setItem('vx_utm', _utm);
+
     async function registrar() {
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
@@ -54,11 +58,13 @@
       btn.disabled = true;
       btn.textContent = "Registrando...";
 
+      const utm = new URLSearchParams(window.location.search).get('utm_source') || 
+                   sessionStorage.getItem('vx_utm') || '';
       try {
         const res = await fetch("/registro", {
           method: "POST",
           headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({email, password})
+          body: JSON.stringify({email, password, utm_source: utm})
         });
         const data = await res.json();
         if (res.ok && data.ok) {
