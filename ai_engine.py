@@ -5,7 +5,18 @@ from memory import save_message, get_context, increment_daily_count
 import requests
 import logging
 import os
-import requests
+import threading
+
+# ── RSI: análisis y perfil de usuario ──────────────────────
+try:
+    from analisis import get_contexto_usuario, analizar_post_sesion
+    ANALISIS_ACTIVO = True
+except Exception as _e:
+    logging.warning(f"[ai_engine] analisis.py no disponible: {_e}")
+    ANALISIS_ACTIVO = False
+    def get_contexto_usuario(uid): return ""
+    def analizar_post_sesion(uid): pass
+# ────────────────────────────────────────────────────────────
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = "6325653174"
