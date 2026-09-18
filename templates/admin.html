@@ -3,177 +3,295 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VeraxIA — Panel Daniela</title>
+<title>veraxIA — Panel Admin</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root {
-    --gold:#c9a84c; --gold-soft:rgba(201,168,76,0.15); --gold-border:rgba(201,168,76,0.25);
-    --bg:#060b18; --card:#0a0e1a; --card2:#0d1220;
-    --text:#f0ece0; --muted:rgba(240,236,224,0.5); --muted2:rgba(240,236,224,0.25);
-    --green:#4caf7d; --red:#e05c5c; --blue:#5c9ce0; --purple:#9c6ce0;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+:root{
+  --gold:#c9a84c;--gold-s:rgba(201,168,76,0.12);--gold-b:rgba(201,168,76,0.22);
+  --bg:#060b18;--card:#0a0e1a;--card2:#0d1220;--card3:#111827;
+  --tx:#f0ece0;--mu:rgba(240,236,224,0.5);--mu2:rgba(240,236,224,0.2);
+  --green:#4caf7d;--red:#e05c5c;--blue:#5c9ce0;--purple:#9c6ce0;--cyan:#22d3ee;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
 
-  /* HEADER */
-  .header{background:var(--card);border-bottom:1px solid var(--gold-border);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
-  .logo{display:flex;align-items:center;gap:10px;}
-  .logo-icon{width:36px;height:36px;border-radius:50%;background:var(--gold-soft);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
-  .logo-text{font-size:1.1rem;color:var(--gold);font-weight:600;letter-spacing:.05em;}
-  .logo-sub{font-size:.7rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
-  .header-right{display:flex;align-items:center;gap:16px;}
-  .refresh-btn{background:var(--gold-soft);border:1px solid var(--gold-border);color:var(--gold);padding:7px 14px;border-radius:20px;font-size:.8rem;cursor:pointer;font-family:inherit;}
-  .refresh-btn:hover{background:rgba(201,168,76,0.25);}
-  .logout-btn{background:none;border:1px solid var(--muted2);color:var(--muted);padding:7px 14px;border-radius:20px;font-size:.8rem;cursor:pointer;font-family:inherit;}
-  .logout-btn:hover{border-color:var(--red);color:var(--red);}
+/* TOPBAR */
+.topbar{background:var(--card);border-bottom:1px solid var(--gold-b);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-ico{width:34px;height:34px;border-radius:50%;background:var(--gold-s);border:1px solid var(--gold-b);display:flex;align-items:center;justify-content:center;font-size:16px;}
+.brand-name{font-size:1rem;color:var(--gold);font-weight:700;letter-spacing:.05em;}
+.brand-sub{font-size:.65rem;color:var(--mu);letter-spacing:.1em;text-transform:uppercase;}
+.top-right{display:flex;align-items:center;gap:10px;}
+.upd-lbl{font-size:.72rem;color:var(--mu);margin-right:4px;}
+.tbtn{border-radius:20px;padding:7px 16px;font-size:.78rem;cursor:pointer;font-family:inherit;transition:opacity .2s;}
+.tbtn-gold{background:var(--gold-s);border:1px solid var(--gold-b);color:var(--gold);}
+.tbtn-muted{background:none;border:1px solid var(--mu2);color:var(--mu);}
+.tbtn:hover{opacity:.75;}
 
-  /* STATS GRID */
-  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;padding:2rem 2rem 1rem;}
-  .stat{background:var(--card);border:1px solid var(--gold-border);border-radius:14px;padding:1.25rem;position:relative;overflow:hidden;transition:transform .2s;}
-  .stat:hover{transform:translateY(-2px);}
-  .stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
-  .stat.gold::before{background:var(--gold);}
-  .stat.green::before{background:var(--green);}
-  .stat.blue::before{background:var(--blue);}
-  .stat.purple::before{background:var(--purple);}
-  .stat.red::before{background:var(--red);}
-  .stat-num{font-size:2.2rem;font-weight:700;color:var(--gold);line-height:1;}
-  .stat.green .stat-num{color:var(--green);}
-  .stat.blue .stat-num{color:var(--blue);}
-  .stat.purple .stat-num{color:var(--purple);}
-  .stat.red .stat-num{color:var(--red);}
-  .stat-label{font-size:.72rem;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.08em;}
-  .stat-icon{position:absolute;top:1rem;right:1rem;font-size:1.4rem;opacity:.35;}
+/* PAGE */
+.page{padding:24px 28px;max-width:1400px;margin:0 auto;}
 
-  /* SECCIONES */
-  .content{padding:0 2rem 3rem;}
-  .section{background:var(--card);border:1px solid var(--gold-border);border-radius:14px;margin-bottom:1.5rem;overflow:hidden;}
-  .sec-header{padding:1rem 1.5rem;border-bottom:1px solid var(--gold-border);display:flex;align-items:center;gap:10px;}
-  .sec-header h2{font-size:.9rem;font-weight:600;color:var(--gold);letter-spacing:.05em;text-transform:uppercase;}
-  .sec-tag{font-size:.7rem;padding:3px 10px;border-radius:20px;margin-left:auto;}
-  .sec-tag.green{background:rgba(76,175,125,.15);color:var(--green);}
-  .sec-tag.blue{background:rgba(92,156,224,.15);color:var(--blue);}
+/* STAT ROWS */
+.stats-main{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;}
+.stats-sec{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.sc{background:var(--card);border:1px solid var(--gold-b);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:transform .15s;}
+.sc:hover{transform:translateY(-2px);}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold);}
+.sc.green::before{background:var(--green);}
+.sc.blue::before{background:var(--blue);}
+.sc.purple::before{background:var(--purple);}
+.sc.red::before{background:var(--red);}
+.sc.cyan::before{background:var(--cyan);}
+.sc-val{font-size:2.2rem;font-weight:700;color:var(--gold);line-height:1;margin-bottom:6px;}
+.sc.green .sc-val{color:var(--green);}
+.sc.blue .sc-val{color:var(--blue);}
+.sc.purple .sc-val{color:var(--purple);}
+.sc.red .sc-val{color:var(--red);}
+.sc.cyan .sc-val{color:var(--cyan);}
+.sc-lbl{font-size:.68rem;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;}
+.sc-ico{position:absolute;top:16px;right:16px;font-size:1.3rem;opacity:.3;}
+/* Secundarias más compactas */
+.stats-sec .sc{padding:14px 16px;}
+.stats-sec .sc-val{font-size:1.6rem;}
 
-  /* TABLA */
-  .tbl-wrap{overflow-x:auto;}
-  table{width:100%;border-collapse:collapse;font-size:.85rem;}
-  th{padding:10px 16px;text-align:left;font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--gold-border);}
-  td{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
-  tr:last-child td{border-bottom:none;}
-  tr:hover td{background:var(--gold-soft);}
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;}
+@media(max-width:1100px){.two-col,.three-col{grid-template-columns:1fr;}}
 
-  /* BADGES */
-  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;}
-  .badge.libre{background:rgba(240,236,224,.08);color:var(--muted);}
-  .badge.alma{background:rgba(201,168,76,.15);color:var(--gold);}
-  .badge.alma_pro{background:rgba(156,108,224,.2);color:var(--purple);}
-  .badge.admin{background:rgba(76,175,125,.15);color:var(--green);}
+/* PANELS */
+.panel{background:var(--card);border:1px solid var(--gold-b);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+.ph{padding:14px 20px;border-bottom:1px solid var(--gold-b);display:flex;align-items:center;gap:10px;}
+.ph h2{font-size:.82rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.08em;}
+.ph-tag{font-size:.68rem;padding:3px 10px;border-radius:20px;margin-left:auto;font-weight:600;}
+.ph-tag.green{background:rgba(76,175,125,.12);color:var(--green);}
+.ph-tag.blue{background:rgba(92,156,224,.12);color:var(--blue);}
+.ph-tag.gold{background:var(--gold-s);color:var(--gold);}
+.ph-tag.red{background:rgba(224,92,92,.12);color:var(--red);}
+.ph-tag.cyan{background:rgba(34,211,238,.12);color:var(--cyan);}
+.ph-tag.purple{background:rgba(156,108,224,.12);color:var(--purple);}
 
-  /* PLANES */
-  .planes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1.5rem;}
-  .plan-card{background:var(--card2);border:1px solid var(--gold-border);border-radius:10px;padding:1rem;text-align:center;}
-  .plan-num{font-size:1.8rem;font-weight:700;}
-  .plan-name{font-size:.75rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.08em;}
+/* TABLE */
+.twrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:.83rem;}
+th{padding:10px 16px;text-align:left;font-size:.68rem;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid rgba(255,255,255,.05);}
+td{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--gold-s);}
 
-  /* UPGRADE FORM */
-  .upgrade-form{padding:1.5rem;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
-  .form-group{display:flex;flex-direction:column;gap:5px;}
-  .form-group label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
-  .form-group input, .form-group select{background:var(--card2);border:1px solid var(--gold-border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:.85rem;font-family:inherit;outline:none;}
-  .form-group input:focus, .form-group select:focus{border-color:var(--gold);}
-  .upgrade-btn{background:var(--gold);color:#060b18;border:none;padding:9px 20px;border-radius:8px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;}
-  .upgrade-btn:hover{opacity:.9;}
+/* BADGES */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;}
+.badge.libre{background:rgba(240,236,224,.06);color:var(--mu);}
+.badge.alma{background:var(--gold-s);color:var(--gold);}
+.badge.alma_pro{background:rgba(156,108,224,.15);color:var(--purple);}
+.badge.admin{background:rgba(76,175,125,.12);color:var(--green);}
 
-  /* EMPTY */
-  .empty{padding:2rem;text-align:center;color:var(--muted);font-size:.85rem;}
+/* PLANES */
+.planes-grid{display:grid;grid-template-columns:1fr;gap:10px;padding:16px;}
+.plan-card{background:var(--card2);border:1px solid var(--gold-b);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;}
+.plan-num{font-size:1.8rem;font-weight:700;color:var(--gold);}
+.plan-name{font-size:.72rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;}
 
-  /* LOADING */
-  .loading{padding:2rem;text-align:center;color:var(--muted);}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--gold-border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle;}
+/* EMOCIONES */
+.emo-grid{display:flex;flex-wrap:wrap;gap:10px;padding:16px;}
+.emo-card{background:var(--card2);border:1px solid var(--gold-b);border-radius:10px;padding:12px 16px;text-align:center;min-width:100px;}
+.emo-emoji{font-size:22px;display:block;margin-bottom:6px;}
+.emo-name{font-size:.75rem;color:var(--tx);font-weight:600;}
+.emo-count{font-size:1.4rem;font-weight:700;color:var(--purple);}
 
-  /* AUTO-UPDATE */
-  .auto-tag{font-size:.7rem;color:var(--muted);margin-left:auto;}
+/* CRISIS */
+.crisis-item{padding:12px 16px;border-bottom:1px solid rgba(224,92,92,.08);border-left:3px solid var(--red);margin:8px 16px;border-radius:0 8px 8px 0;background:rgba(224,92,92,.04);}
+.crisis-item:last-child{margin-bottom:12px;}
+.crisis-meta{display:flex;justify-content:space-between;margin-bottom:4px;}
+.crisis-uid{font-size:.72rem;color:var(--red);font-weight:700;}
+.crisis-date{font-size:.7rem;color:var(--mu);}
+.crisis-msg{font-size:.82rem;color:var(--mu);}
 
-  @media(max-width:600px){
-    .stats{grid-template-columns:1fr 1fr;}
-    .planes-grid{grid-template-columns:1fr;}
-    .header{padding:.75rem 1rem;}
-    .content,.stats{padding-left:1rem;padding-right:1rem;}
-  }
+/* RSI PERFILES */
+.rsi-actions{padding:16px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--gold-b);}
+.rsi-btn{padding:9px 18px;border-radius:10px;font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;transition:opacity .2s;border:none;}
+.rsi-btn-gold{background:var(--gold);color:#060b18;}
+.rsi-btn-outline{background:var(--card2);border:1px solid var(--gold-b) !important;color:var(--tx);}
+.rsi-btn:hover{opacity:.85;}
+
+.perfil-card{background:var(--card2);border:1px solid var(--gold-b);border-radius:12px;padding:16px;margin:8px 16px;}
+.perfil-card:last-child{margin-bottom:12px;}
+.perfil-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.perfil-uid{font-size:.75rem;color:var(--gold);font-family:monospace;font-weight:700;}
+.perfil-sesiones{font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--gold-s);color:var(--gold);margin-left:auto;}
+.perfil-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+@media(max-width:700px){.perfil-grid{grid-template-columns:1fr;}}
+.perfil-field{background:var(--card);border-radius:8px;padding:10px 12px;}
+.perfil-field-lbl{font-size:.62rem;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;}
+.perfil-field-val{font-size:.82rem;color:var(--tx);line-height:1.4;}
+.perfil-field.full{grid-column:1/-1;}
+
+/* UPGRADE FORM */
+.form-wrap{padding:16px 20px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fg label{font-size:.68rem;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;}
+.fg input,.fg select{background:var(--card2);border:1px solid var(--gold-b);color:var(--tx);padding:8px 12px;border-radius:8px;font-family:inherit;font-size:.82rem;outline:none;}
+.fg input:focus,.fg select:focus{border-color:var(--gold);}
+.upg-btn{background:var(--gold);color:#060b18;border:none;padding:9px 20px;border-radius:8px;font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;}
+.upg-btn:hover{opacity:.88;}
+.upg-msg{padding:0 20px 12px;font-size:.82rem;display:none;}
+
+/* EMPTY / LOADING */
+.empty{padding:24px;text-align:center;color:var(--mu);font-size:.82rem;}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+@media(max-width:900px){
+  .stats-main,.stats-sec{grid-template-columns:1fr 1fr;}
+  .page{padding:16px;}
+  .topbar{padding:12px 16px;}
+}
+@media(max-width:500px){
+  .stats-main,.stats-sec{grid-template-columns:1fr 1fr;}
+}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="logo">
-    <div class="logo-icon">🧭</div>
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-ico">🧭</div>
     <div>
-      <div class="logo-text">VeraxIA</div>
-      <div class="logo-sub">Panel Daniela</div>
+      <div class="brand-name">verax<span style="color:var(--tx)">IA</span></div>
+      <div class="brand-sub">Panel Daniela</div>
     </div>
   </div>
-  <div class="header-right">
-    <button class="refresh-btn" onclick="cargar()">↻ Actualizar</button>
-    <button class="logout-btn" onclick="logout()">Salir</button>
+  <div class="top-right">
+    <span class="upd-lbl" id="upd-time"></span>
+    <button class="tbtn tbtn-gold" onclick="cargar()">↻ Actualizar</button>
+    <button class="tbtn tbtn-muted" onclick="logout()">Salir</button>
   </div>
 </div>
 
-<!-- STATS -->
-<div class="stats" id="stats">
-  <div class="stat gold"><span class="stat-icon">👥</span><div class="stat-num" id="s-total">—</div><div class="stat-label">Usuarios totales</div></div>
-  <div class="stat green"><span class="stat-icon">✨</span><div class="stat-num" id="s-nuevos">—</div><div class="stat-label">Nuevos hoy</div></div>
-  <div class="stat blue"><span class="stat-icon">💬</span><div class="stat-num" id="s-mensajes">—</div><div class="stat-label">Mensajes hoy</div></div>
-  <div class="stat purple"><span class="stat-icon">💎</span><div class="stat-num" id="s-pagos">—</div><div class="stat-label">Con plan activo</div></div>
-  <div class="stat red"><span class="stat-icon">💵</span><div class="stat-num" id="s-ingresos">—</div><div class="stat-label">Ingresos este mes</div></div>
-  <div class="stat" style="border-top:2px solid #e0a05c;"><span class="stat-icon">🏦</span><div class="stat-num" style="color:#e0a05c;" id="s-ingresos-total">—</div><div class="stat-label">Total histórico</div></div>
-  <div class="stat" style="border-top:2px solid #5c9ce0;"><span class="stat-icon">👁</span><div class="stat-num" style="color:#5c9ce0;" id="s-visitas-hoy">—</div><div class="stat-label">Visitas hoy</div></div>
-  <div class="stat" style="border-top:2px solid #9c6ce0;"><span class="stat-icon">📊</span><div class="stat-num" style="color:#9c6ce0;" id="s-conversion">—</div><div class="stat-label">Conversión</div></div>
-</div>
+<div class="page">
 
-<div class="content">
-
-  <!-- PLANES -->
-  <div class="section">
-    <div class="sec-header">
-      <span>📊</span>
-      <h2>Distribución de planes</h2>
-      <span class="sec-tag green" id="planes-count">cargando...</span>
+  <!-- STATS PRINCIPALES -->
+  <div class="stats-main">
+    <div class="sc"><span class="sc-ico">👥</span>
+      <div class="sc-val" id="s-total">—</div>
+      <div class="sc-lbl">Usuarios totales</div>
     </div>
-    <div class="planes-grid" id="planes-grid">
-      <div class="loading"><span class="spinner"></span>Cargando...</div>
+    <div class="sc purple"><span class="sc-ico">💎</span>
+      <div class="sc-val" id="s-pagos">—</div>
+      <div class="sc-lbl">Con plan activo</div>
+    </div>
+    <div class="sc green"><span class="sc-ico">💵</span>
+      <div class="sc-val" id="s-ingresos-total">—</div>
+      <div class="sc-lbl">Total histórico</div>
+    </div>
+    <div class="sc blue"><span class="sc-ico">💬</span>
+      <div class="sc-val" id="s-mensajes">—</div>
+      <div class="sc-lbl">Mensajes hoy</div>
     </div>
   </div>
 
-  <!-- USUARIOS RECIENTES -->
-  <div class="section">
-    <div class="sec-header">
-      <span>🕐</span>
-      <h2>Últimos usuarios activos</h2>
-      <span class="auto-tag">últimos 20</span>
+  <!-- STATS SECUNDARIAS -->
+  <div class="stats-sec">
+    <div class="sc green"><span class="sc-ico">✨</span>
+      <div class="sc-val" id="s-nuevos">—</div>
+      <div class="sc-lbl">Nuevos hoy</div>
     </div>
-    <div class="tbl-wrap">
-      <table>
-        <thead><tr>
-          <th>Email</th><th>Plan</th><th>Mensajes</th><th>Último acceso</th><th>Registro</th>
-        </tr></thead>
-        <tbody id="tabla-usuarios"><tr><td colspan="5" class="empty">Cargando...</td></tr></tbody>
-      </table>
+    <div class="sc blue"><span class="sc-ico">👁</span>
+      <div class="sc-val" id="s-visitas-hoy">—</div>
+      <div class="sc-lbl">Visitas hoy</div>
+    </div>
+    <div class="sc cyan"><span class="sc-ico">📊</span>
+      <div class="sc-val" id="s-conversion">—</div>
+      <div class="sc-lbl">Conversión</div>
+    </div>
+    <div class="sc red"><span class="sc-ico">💰</span>
+      <div class="sc-val" id="s-ingresos">—</div>
+      <div class="sc-lbl">Ingresos este mes</div>
     </div>
   </div>
 
-  <!-- SUBIR PLAN -->
-  <div class="section">
-    <div class="sec-header">
-      <span>⚡</span>
-      <h2>Gestionar plan de usuario</h2>
-      <span class="sec-tag blue">Admin</span>
+  <!-- USUARIOS + PLANES -->
+  <div class="two-col">
+    <div class="panel">
+      <div class="ph">
+        <span>🕐</span><h2>Últimos usuarios activos</h2>
+        <span class="ph-tag blue">últimos 20</span>
+      </div>
+      <div class="twrap">
+        <table>
+          <thead><tr>
+            <th>Email</th><th>Plan</th><th>Mensajes</th><th>Último acceso</th><th>Registro</th>
+          </tr></thead>
+          <tbody id="tabla-usuarios">
+            <tr><td colspan="5" class="empty">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-    <div class="upgrade-form">
-      <div class="form-group">
+
+    <div class="panel">
+      <div class="ph">
+        <span>📊</span><h2>Distribución de planes</h2>
+        <span class="ph-tag green" id="planes-count">—</span>
+      </div>
+      <div class="planes-grid" id="planes-grid">
+        <div class="empty">Cargando...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMOCIONES + CRISIS -->
+  <div class="two-col">
+    <div class="panel">
+      <div class="ph">
+        <span>💜</span><h2>Emociones detectadas</h2>
+        <span class="ph-tag purple">acumuladas</span>
+      </div>
+      <div class="emo-grid" id="emociones-grid">
+        <div class="empty">Cargando...</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph">
+        <span>🚨</span><h2>Alertas de crisis</h2>
+        <span class="ph-tag red" id="crisis-count">—</span>
+      </div>
+      <div id="crisis-lista">
+        <div class="empty">Cargando...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RSI: LO QUE APRENDIÓ veraxIA -->
+  <div class="panel">
+    <div class="ph">
+      <span>🧠</span><h2>Lo que aprendió veraxIA de cada usuario</h2>
+      <span class="ph-tag cyan" id="analisis-estado"><span class="dot"></span>En espera</span>
+    </div>
+    <div class="rsi-actions">
+      <button class="rsi-btn rsi-btn-gold" onclick="lanzarAnalisis()">🚀 Analizar histórico completo</button>
+      <button class="rsi-btn rsi-btn-outline" onclick="verPerfiles()">👤 Ver perfiles aprendidos</button>
+      <span style="font-size:.75rem;color:var(--mu);margin-left:8px;">Analiza conversaciones reales · Construye perfil por usuario · veraxIA usa este contexto automáticamente</span>
+    </div>
+    <div id="perfiles-container" style="display:none;padding-bottom:4px;">
+      <div id="perfiles-lista"></div>
+    </div>
+  </div>
+
+  <!-- GESTIONAR PLAN -->
+  <div class="panel">
+    <div class="ph">
+      <span>⚡</span><h2>Gestionar plan de usuario</h2>
+      <span class="ph-tag blue">Admin</span>
+    </div>
+    <div class="form-wrap">
+      <div class="fg">
         <label>Email del usuario</label>
         <input type="email" id="upg-email" placeholder="usuario@email.com" style="min-width:220px;">
       </div>
-      <div class="form-group">
+      <div class="fg">
         <label>Plan</label>
         <select id="upg-plan">
           <option value="libre">Libre (gratuito)</option>
@@ -182,11 +300,11 @@
           <option value="admin">Admin</option>
         </select>
       </div>
-      <div class="form-group">
+      <div class="fg">
         <label>Monto USD</label>
         <input type="number" id="upg-monto" value="7" style="width:90px;">
       </div>
-      <div class="form-group">
+      <div class="fg">
         <label>Método</label>
         <select id="upg-metodo">
           <option value="manual">Manual</option>
@@ -195,260 +313,197 @@
           <option value="cortesia">Cortesía</option>
         </select>
       </div>
-      <button class="upgrade-btn" onclick="upgradeUsuario()">Actualizar plan →</button>
+      <button class="upg-btn" onclick="upgradeUsuario()">Actualizar plan →</button>
     </div>
-    <div id="upg-msg" style="padding:0 1.5rem 1rem;font-size:.85rem;color:var(--green);display:none;"></div>
+    <div class="upg-msg" id="upg-msg"></div>
   </div>
 
-</div>
+</div><!-- /page -->
 
 <script>
-async function cargar() {
-  try {
-    const r = await fetch('/admin/stats');
-    if (!r.ok) { window.location = '/login'; return; }
-    const d = await r.json();
-
-    document.getElementById('s-total').textContent = d.total_usuarios || 0;
-    document.getElementById('s-nuevos').textContent = d.nuevos_hoy || 0;
-    document.getElementById('s-mensajes').textContent = d.mensajes_hoy || 0;
-    document.getElementById('s-pagos').textContent = d.usuarios_pagos || 0;
-    document.getElementById('s-ingresos').textContent = '$' + (d.ingresos_mes_usd || 0).toFixed(2);
-    document.getElementById('s-ingresos-total').textContent = '$' + (d.ingresos_total_usd || 0).toFixed(2);
-
-    // Planes
-    const planes = d.planes || {};
-    const total = Object.values(planes).reduce((a,b)=>a+b,0);
-    document.getElementById('planes-count').textContent = total + ' usuarios';
-    document.getElementById('planes-grid').innerHTML = Object.entries(planes).map(([p,n])=>`
-      <div class="plan-card">
-        <div class="plan-num" style="color:${p==='libre'?'var(--muted)':p==='alma'?'var(--gold)':'var(--purple)'}">${n}</div>
-        <div class="plan-name">${p}</div>
-      </div>
-    `).join('') || '<div class="empty">Sin datos</div>';
-
-    // Tabla usuarios
-    const filas = (d.ultimos_usuarios || []).map(u=>`
-      <tr>
-        <td>${u.email}</td>
-        <td><span class="badge ${u.plan}">${u.plan}</span></td>
-        <td>${u.mensajes || 0}</td>
-        <td>${(u.ultimo_acceso||'').substring(0,16)}</td>
-        <td>${(u.registro||'').substring(0,10)}</td>
-      </tr>
-    `).join('');
-    document.getElementById('tabla-usuarios').innerHTML = filas || '<tr><td colspan="5" class="empty">Sin usuarios aún</td></tr>';
-
-  } catch(e) {
-    console.error(e);
-  }
-
-  // Cargar visitas
-  try {
-    const rv = await fetch('/api/visitas/stats');
-    if(rv.ok){
-      const v = await rv.json();
-      document.getElementById('s-visitas-hoy').textContent = v.hoy || 0;
-      const conv = v.hoy > 0 ? Math.round((v.registrados / v.total) * 100) : 0;
-      document.getElementById('s-conversion').textContent = conv + '%';
-    }
-  } catch(e) {}
-}
-
-async function upgradeUsuario() {
-  const email = document.getElementById('upg-email').value.trim();
-  const plan = document.getElementById('upg-plan').value;
-  const monto = parseFloat(document.getElementById('upg-monto').value) || 0;
-  const metodo = document.getElementById('upg-metodo').value;
-
-  if (!email) { alert('Ingresa el email del usuario'); return; }
-
-  const r = await fetch('/admin/upgrade', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({email, plan, monto, metodo})
-  });
-  const d = await r.json();
-
-  const msg = document.getElementById('upg-msg');
-  msg.style.display = 'block';
-  if (d.ok) {
-    msg.style.color = 'var(--green)';
-    msg.textContent = `✅ ${email} actualizado a plan "${plan}"`;
-    cargar();
-  } else {
-    msg.style.color = 'var(--red)';
-    msg.textContent = `❌ Error: ${d.error}`;
-  }
-}
-
-async function logout() {
-  await fetch('/logout', {method:'POST'});
-  window.location = '/login';
-}
-
-cargar();
-setInterval(cargar, 30000);
-</script>
-<!-- ════════════════════════════════════════════════════
-     PEGA ESTO EN admin.html después de la sección de planes
-     ════════════════════════════════════════════════════ -->
-
-<!-- EMOCIONES -->
-<div style="margin-top:30px; background:#1a1a2e; border-radius:12px; padding:20px;">
-  <h3 style="color:#9B7FF6; margin:0 0 15px 0;">💜 Emociones detectadas</h3>
-  <div id="emociones-grid" style="display:flex; flex-wrap:wrap; gap:10px;">
-    <p style="color:#666;">Cargando...</p>
-  </div>
-</div>
-
-<!-- ALERTAS DE CRISIS -->
-<div style="margin-top:20px; background:#1a0a0a; border-radius:12px; padding:20px; border:1px solid #cc3333;">
-  <h3 style="color:#ff6666; margin:0 0 15px 0;">🚨 Alertas de crisis</h3>
-  <div id="crisis-lista">
-    <p style="color:#666;">Cargando...</p>
-  </div>
-</div>
-
-<script>
-// Emojis por emoción
 const EMOJIS = {
   'Tristeza':'😢','Alegría':'😊','Ansiedad':'😰','Calma':'😌',
   'Confusión':'😕','Gratitud':'🙏','Amistad':'🤝','Alivio':'😮‍💨',
   'Curiosidad':'🔍','Risa':'😄','Saludo':'👋','Satisfacción':'✨',
   'Necesidad':'🫂','Incertidumbre':'🌫️','Crisis':'🚨','Interés':'👁️',
+  'Miedo':'😨','Esperanza':'🌟','Dolor':'💔','Reflexión':'🤔',
 };
 
-fetch('/admin/emociones')
-  .then(r => r.json())
-  .then(data => {
-    // Emociones
-    const grid = document.getElementById('emociones-grid');
-    if (!data.emociones || !data.emociones.length) {
-      grid.innerHTML = '<p style="color:#666">Sin datos aún — aparecerán con los próximos mensajes</p>';
-    } else {
-      grid.innerHTML = data.emociones.map(e => `
-        <div style="background:#2a2a4a;border-radius:10px;padding:12px 18px;text-align:center;min-width:110px;">
-          <div style="font-size:26px">${EMOJIS[e.emocion] || '💭'}</div>
-          <div style="color:#fff;font-weight:600;margin:4px 0">${e.emocion}</div>
-          <div style="color:#9B7FF6;font-size:20px;font-weight:bold">${e.total}</div>
+async function cargar() {
+  try {
+    const r = await fetch('/admin/stats');
+    if (!r.ok) { window.location='/login'; return; }
+    const d = await r.json();
+
+    document.getElementById('s-total').textContent      = d.total_usuarios ?? 0;
+    document.getElementById('s-nuevos').textContent     = d.nuevos_hoy ?? 0;
+    document.getElementById('s-mensajes').textContent   = d.mensajes_hoy ?? 0;
+    document.getElementById('s-pagos').textContent      = d.usuarios_pagos ?? 0;
+    document.getElementById('s-ingresos').textContent   = '$'+(d.ingresos_mes_usd||0).toFixed(2);
+    document.getElementById('s-ingresos-total').textContent = '$'+(d.ingresos_total_usd||0).toFixed(2);
+
+    // Planes
+    const planes = d.planes || {};
+    const total  = Object.values(planes).reduce((a,b)=>a+b,0);
+    document.getElementById('planes-count').textContent = total+' usuarios';
+    const colors = {libre:'var(--mu)',alma:'var(--gold)',alma_pro:'var(--purple)',admin:'var(--green)'};
+    document.getElementById('planes-grid').innerHTML = Object.entries(planes).map(([p,n])=>`
+      <div class="plan-card">
+        <div>
+          <div class="plan-num" style="color:${colors[p]||'var(--tx)'}">${n}</div>
+          <div class="plan-name">${p}</div>
         </div>
-      `).join('');
+        <div style="font-size:1.8rem;opacity:.25">${p==='libre'?'🔓':p==='alma'?'💎':p==='alma_pro'?'👑':'🛡️'}</div>
+      </div>`).join('') || '<div class="empty">Sin datos</div>';
+
+    // Usuarios
+    document.getElementById('tabla-usuarios').innerHTML =
+      (d.ultimos_usuarios||[]).map(u=>`
+        <tr>
+          <td style="color:var(--tx)">${u.email}</td>
+          <td><span class="badge ${u.plan}">${u.plan}</span></td>
+          <td style="color:var(--gold);font-weight:700">${u.mensajes||0}</td>
+          <td style="font-size:.78rem">${(u.ultimo_acceso||'').substring(0,16)}</td>
+          <td style="font-size:.78rem;color:var(--mu)">${(u.registro||'').substring(0,10)}</td>
+        </tr>`).join('') || '<tr><td colspan="5" class="empty">Sin usuarios aún</td></tr>';
+
+    document.getElementById('upd-time').textContent =
+      'Actualizado ' + new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
+
+  } catch(e) { console.error(e); }
+
+  // Visitas
+  try {
+    const rv = await fetch('/api/visitas/stats');
+    if (rv.ok) {
+      const v = await rv.json();
+      document.getElementById('s-visitas-hoy').textContent = v.hoy || 0;
+      const conv = v.total > 0 ? Math.round((v.registrados/v.total)*100) : 0;
+      document.getElementById('s-conversion').textContent = conv+'%';
     }
+  } catch(e) {}
 
-    // Crisis
-    const lista = document.getElementById('crisis-lista');
-    if (!data.crisis || !data.crisis.length) {
-      lista.innerHTML = '<p style="color:#4CAF50">✅ Sin alertas de crisis registradas</p>';
-    } else {
-      lista.innerHTML = data.crisis.map(c => `
-        <div style="background:#2a0a0a;border-radius:8px;padding:12px;margin-bottom:8px;border-left:4px solid #cc3333;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="color:#ff8888;font-size:12px;font-weight:600">${c.user_id}</span>
-            <span style="color:#666;font-size:11px">${c.fecha}</span>
-          </div>
-          <p style="color:#ddd;margin:0;font-size:13px">${c.mensaje}</p>
-        </div>
-      `).join('');
-    }
-  })
-  .catch(() => {
-    document.getElementById('emociones-grid').innerHTML = '<p style="color:#666">Error cargando datos</p>';
-    document.getElementById('crisis-lista').innerHTML = '<p style="color:#666">Error cargando alertas</p>';
-  });
-</script>
-
-
-  <!-- APRENDIZAJE RSI -->
-  <div class="section">
-    <div class="sec-header">
-      <span>🧠</span>
-      <h2>Sistema de Aprendizaje</h2>
-      <span class="sec-tag tag-cyan" id="analisis-estado">En espera</span>
-    </div>
-    <div style="padding:1.5rem;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
-      
-      <div style="flex:1;min-width:220px;">
-        <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px;">
-          Analiza todas las conversaciones históricas y construye perfiles de usuario.<br>
-          veraxIA usará estos perfiles para responder con mayor profundidad.
-        </p>
-        <button onclick="lanzarAnalisis()" 
-          style="background:var(--gold);color:#060b18;border:none;padding:10px 20px;border-radius:10px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;margin-right:10px;">
-          🚀 Analizar histórico completo
-        </button>
-        <button onclick="verPerfiles()"
-          style="background:var(--card2);border:1px solid var(--gold-border);color:var(--text);padding:10px 20px;border-radius:10px;font-family:inherit;font-size:.85rem;cursor:pointer;">
-          👤 Ver perfiles
-        </button>
-      </div>
-
-      <div id="perfiles-container" style="flex:2;min-width:300px;display:none;">
-        <table style="width:100%;border-collapse:collapse;font-size:.8rem;">
-          <thead>
-            <tr style="border-bottom:1px solid var(--gold-border);">
-              <th style="padding:8px;text-align:left;color:var(--muted);">Usuario</th>
-              <th style="padding:8px;text-align:left;color:var(--muted);">Busca profundamente</th>
-              <th style="padding:8px;text-align:left;color:var(--muted);">Emoción frecuente</th>
-              <th style="padding:8px;text-align:left;color:var(--muted);">Sesiones</th>
-            </tr>
-          </thead>
-          <tbody id="perfiles-tabla"></tbody>
-        </table>
-      </div>
-
-    </div>
-  </div>
-
-  <script>
-  async function lanzarAnalisis() {
-    const tag = document.getElementById('analisis-estado');
-    tag.textContent = '⏳ Procesando...';
-    tag.style.background = 'rgba(201,168,76,.15)';
-    tag.style.color = 'var(--gold)';
-    try {
-      const r = await fetch('/admin/analizar', {
-        method: 'POST',
-        credentials: 'include'
-      });
-      if (!r.ok) { tag.textContent = '❌ No autorizado'; return; }
-      const d = await r.json();
-      tag.textContent = '✅ ' + (d.mensaje || 'Iniciado');
-      tag.style.background = 'rgba(76,175,125,.15)';
-      tag.style.color = 'var(--green)';
-    } catch(e) {
-      tag.textContent = '❌ Error: ' + e.message;
-      tag.style.color = 'var(--red)';
-    }
-  }
-
-  async function verPerfiles() {
-    const container = document.getElementById('perfiles-container');
-    const tbody = document.getElementById('perfiles-tabla');
-    container.style.display = container.style.display === 'none' ? 'block' : 'none';
-    if (container.style.display === 'none') return;
-    
-    tbody.innerHTML = '<tr><td colspan="4" style="padding:12px;color:var(--muted);">Cargando...</td></tr>';
-    try {
-      const r = await fetch('/admin/perfiles', { credentials: 'include' });
-      const d = await r.json();
-      if (!d.perfiles || d.perfiles.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="padding:12px;color:var(--muted);">Sin perfiles aún — lanza el análisis primero.</td></tr>';
-        return;
+  // Emociones + Crisis
+  try {
+    const re = await fetch('/admin/emociones');
+    if (re.ok) {
+      const e = await re.json();
+      const grid = document.getElementById('emociones-grid');
+      if (!e.emociones || !e.emociones.length) {
+        grid.innerHTML = '<div class="empty">Se llenarán con los próximos mensajes del chat ✨</div>';
+      } else {
+        grid.innerHTML = e.emociones.map(em=>`
+          <div class="emo-card">
+            <span class="emo-emoji">${EMOJIS[em.emocion]||'💭'}</span>
+            <div class="emo-name">${em.emocion}</div>
+            <div class="emo-count">${em.total}</div>
+          </div>`).join('');
       }
-      tbody.innerHTML = d.perfiles.map(p => `
-        <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
-          <td style="padding:8px;color:var(--text);font-size:.75rem;">${p.user_id.slice(0,12)}...</td>
-          <td style="padding:8px;color:var(--muted);font-size:.75rem;">${(p.busqueda||'').slice(0,60)}</td>
-          <td style="padding:8px;color:var(--muted);font-size:.75rem;">${p.emocion||'—'}</td>
-          <td style="padding:8px;color:var(--gold);font-size:.75rem;">${p.sesiones}</td>
-        </tr>
-      `).join('');
-    } catch(e) {
-      tbody.innerHTML = '<tr><td colspan="4" style="padding:12px;color:var(--red);">Error cargando perfiles</td></tr>';
-    }
-  }
-  </script>
 
+      const crisis = e.crisis || [];
+      document.getElementById('crisis-count').textContent = crisis.length ? crisis.length+' alertas' : '0 alertas';
+      document.getElementById('crisis-lista').innerHTML = crisis.length
+        ? crisis.map(c=>`
+            <div class="crisis-item">
+              <div class="crisis-meta">
+                <span class="crisis-uid">🚨 ${c.user_id}</span>
+                <span class="crisis-date">${(c.fecha||'').substring(0,16)}</span>
+              </div>
+              <p class="crisis-msg">${c.mensaje}</p>
+            </div>`).join('')
+        : '<div class="empty" style="color:var(--green)">✅ Sin alertas de crisis registradas</div>';
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function upgradeUsuario() {
+  const email  = document.getElementById('upg-email').value.trim();
+  const plan   = document.getElementById('upg-plan').value;
+  const monto  = parseFloat(document.getElementById('upg-monto').value)||0;
+  const metodo = document.getElementById('upg-metodo').value;
+  if (!email) { alert('Ingresa el email del usuario'); return; }
+  const r = await fetch('/admin/upgrade',{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email,plan,monto,metodo})});
+  const d = await r.json();
+  const msg = document.getElementById('upg-msg');
+  msg.style.display='block';
+  if (d.ok){
+    msg.style.color='var(--green)';
+    msg.textContent='✅ '+email+' actualizado a plan "'+plan+'"';
+    cargar();
+  } else {
+    msg.style.color='var(--red)';
+    msg.textContent='❌ Error: '+d.error;
+  }
+}
+
+async function lanzarAnalisis() {
+  const tag = document.getElementById('analisis-estado');
+  tag.innerHTML = '⏳ Procesando...';
+  tag.className = 'ph-tag gold';
+  try {
+    const r = await fetch('/admin/analizar',{method:'POST',credentials:'include'});
+    if (!r.ok){ tag.textContent='❌ No autorizado'; return; }
+    const d = await r.json();
+    tag.innerHTML = '✅ '+(d.mensaje||'Iniciado');
+    tag.className = 'ph-tag green';
+    setTimeout(verPerfiles, 3000);
+  } catch(e) {
+    tag.textContent='❌ Error: '+e.message;
+    tag.className = 'ph-tag red';
+  }
+}
+
+async function verPerfiles() {
+  const container = document.getElementById('perfiles-container');
+  const lista     = document.getElementById('perfiles-lista');
+  const visible   = container.style.display !== 'none';
+  container.style.display = visible ? 'none' : 'block';
+  if (visible) return;
+
+  lista.innerHTML = '<div class="empty">Cargando perfiles...</div>';
+  try {
+    const r = await fetch('/admin/perfiles',{credentials:'include'});
+    const d = await r.json();
+    if (!d.perfiles || !d.perfiles.length) {
+      lista.innerHTML = '<div class="empty">Sin perfiles aún — lanza el análisis primero</div>';
+      return;
+    }
+    lista.innerHTML = d.perfiles.map(p=>`
+      <div class="perfil-card">
+        <div class="perfil-header">
+          <span style="font-size:1.2rem">🧠</span>
+          <span class="perfil-uid">${p.user_id}</span>
+          <span class="perfil-sesiones">${p.sesiones} sesión${p.sesiones!==1?'es':''}</span>
+        </div>
+        <div class="perfil-grid">
+          <div class="perfil-field full">
+            <div class="perfil-field-lbl">🎯 Busca profundamente</div>
+            <div class="perfil-field-val">${p.busqueda||'—'}</div>
+          </div>
+          <div class="perfil-field">
+            <div class="perfil-field-lbl">💜 Emoción frecuente</div>
+            <div class="perfil-field-val">${p.emocion||'—'}</div>
+          </div>
+          <div class="perfil-field">
+            <div class="perfil-field-lbl">📚 Marco filosófico</div>
+            <div class="perfil-field-val">${p.filosofia||'—'}</div>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    lista.innerHTML = '<div class="empty" style="color:var(--red)">Error cargando perfiles</div>';
+  }
+}
+
+async function logout(){
+  await fetch('/logout',{method:'POST'});
+  window.location='/login';
+}
+
+cargar();
+setInterval(cargar, 30000);
+</script>
 </body>
 </html>
