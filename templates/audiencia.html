@@ -114,6 +114,58 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
   </div>
 
+
+  <!-- ONBOARDING MÉTRICAS -->
+  <div style="margin-bottom:18px;">
+    <div style="font-size:.72rem;color:var(--mu);font-weight:700;text-transform:uppercase;
+      letter-spacing:.1em;margin-bottom:12px;">📋 Onboarding emocional — lo que declararon tus usuarios</div>
+    <div class="grid3" id="ob-grid" style="margin-bottom:0">
+      <div class="cpanel">
+        <div class="ch"><span>😌</span><h2>¿Cómo llegaron?</h2><span class="ch-tag purple">estado inicial</span></div>
+        <div class="chart-wrap"><canvas id="ob-estados" height="160"></canvas></div>
+      </div>
+      <div class="cpanel">
+        <div class="ch"><span>🎯</span><h2>¿Qué buscan?</h2><span class="ch-tag gold">intención</span></div>
+        <div class="chart-wrap"><canvas id="ob-busquedas" height="160"></canvas></div>
+      </div>
+      <div class="cpanel">
+        <div class="ch"><span>✨</span><h2>Área de vida</h2><span class="ch-tag blue">segmentación</span></div>
+        <div class="chart-wrap"><canvas id="ob-areas" height="160"></canvas></div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:16px;margin-bottom:0">
+      <div class="cpanel">
+        <div class="ch"><span>🌊</span><h2>Estilo preferido</h2><span class="ch-tag green">cómo hablarles</span></div>
+        <div class="chart-wrap"><canvas id="ob-estilos" height="160"></canvas></div>
+      </div>
+      <div class="cpanel">
+        <div class="ch"><span>🔄</span><h2>Frecuencia del estado</h2><span class="ch-tag orange">profundidad</span></div>
+        <div class="chart-wrap" style="display:flex;align-items:center;justify-content:center;padding:16px;">
+          <canvas id="ob-frecuencias" height="160"></canvas>
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;
+      padding:14px 20px;margin-top:16px;display:flex;gap:24px;align-items:center;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:2rem;font-weight:800;color:var(--green)" id="ob-completados">—</div>
+        <div style="font-size:.72rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em">Completaron onboarding</div>
+      </div>
+      <div>
+        <div style="font-size:2rem;font-weight:800;color:var(--mu)" id="ob-omitidos">—</div>
+        <div style="font-size:.72rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em">Prefirieron privacidad</div>
+      </div>
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:.78rem;color:var(--mu);margin-bottom:6px;">Tasa de completación</div>
+        <div style="background:var(--border2);border-radius:4px;height:8px;overflow:hidden;">
+          <div id="ob-tasa-bar" style="height:100%;background:var(--green);border-radius:4px;width:0%;transition:width .8s;"></div>
+        </div>
+        <div style="font-size:.72rem;color:var(--mu);margin-top:4px;" id="ob-tasa-pct">0%</div>
+      </div>
+    </div>
+  </div>
+  <div style="height:1px;background:var(--border2);margin-bottom:20px;"></div>
+
   <!-- FILA 1: Emociones + Por hora -->
   <div class="grid2">
     <div class="cpanel">
@@ -380,6 +432,54 @@ async function cargar() {
       document.getElementById('temas-wrap').innerHTML =
         '<div class="empty">Lanza el análisis RSI primero para ver los temas de tu audiencia</div>';
     }
+
+
+  // Onboarding stats
+  try {
+    const rob = await fetch('/api/onboarding/stats');
+    if (rob.ok) {
+      const ob = await rob.json();
+
+      const obColores = ['#7c3aed','#1d4ed8','#15803d','#b8860b','#db2777','#ea580c','#0891b2'];
+
+      function obDoughnut(canvasId, data, label) {
+        destroyChart(canvasId);
+        if (!data || !data.length) {
+          const el = document.getElementById(canvasId);
+          if(el) el.parentElement.innerHTML = '<div class="empty" style="padding:20px">Sin datos aún — aparecerán con el primer onboarding</div>';
+          return;
+        }
+        charts[canvasId] = new Chart(document.getElementById(canvasId).getContext('2d'), {
+          type:'doughnut',
+          data:{
+            labels: data.map(d=>d.valor),
+            datasets:[{data:data.map(d=>d.total),
+              backgroundColor:obColores.slice(0,data.length).map(c=>c+'cc'),
+              borderColor:'#fffdf7',borderWidth:3}]
+          },
+          options:{responsive:true,cutout:'55%',
+            plugins:{
+              legend:{display:true,position:'bottom',labels:{color:'#3d3520',font:{size:10},padding:8,boxWidth:10}},
+              tooltip:{backgroundColor:'#1c1a14',titleColor:'#f0ece0',bodyColor:'#c4a97a',
+                callbacks:{label:c=>' '+c.parsed+' usuarios'}}
+            }}
+        });
+      }
+
+      obDoughnut('ob-estados',   ob.estados,    'Estado inicial');
+      obDoughnut('ob-busquedas', ob.busquedas,  'Búsqueda');
+      obDoughnut('ob-areas',     ob.areas,      'Área de vida');
+      obDoughnut('ob-estilos',   ob.estilos,    'Estilo');
+      obDoughnut('ob-frecuencias',ob.frecuencias,'Frecuencia');
+
+      const total = (ob.completados||0) + (ob.sin_onboarding||0);
+      document.getElementById('ob-completados').textContent = ob.completados||0;
+      document.getElementById('ob-omitidos').textContent = ob.sin_onboarding||0;
+      const tasa = total>0 ? Math.round((ob.completados/total)*100) : 0;
+      document.getElementById('ob-tasa-bar').style.width = tasa+'%';
+      document.getElementById('ob-tasa-pct').textContent = tasa+'% completaron el onboarding';
+    }
+  } catch(e) { console.error('ob stats:', e); }
 
     document.getElementById('upd').textContent =
       'Actualizado ' + new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
