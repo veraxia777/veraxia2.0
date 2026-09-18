@@ -1118,6 +1118,35 @@ async function sendMsg(){var input=document.getElementById('chatInput');var text
 #vx-typing{font-size:.75rem;color:var(--t3);padding:0 1rem .5rem;display:none;}
 </style>
 
+
+<style>
+/* ── ONBOARDING ── */
+#vx-ob{display:none;flex-direction:column;flex:1;padding:1.2rem;overflow-y:auto;}
+#vx-ob.active{display:flex;}
+.ob-skip-all{align-self:flex-end;background:none;border:none;color:var(--t3);
+  font-size:.72rem;cursor:pointer;padding:0;font-family:inherit;margin-bottom:.5rem;text-decoration:underline;}
+.ob-skip-all:hover{color:var(--t1);}
+.ob-progress{display:flex;gap:5px;margin-bottom:1.2rem;}
+.ob-dot{height:4px;flex:1;border-radius:2px;background:rgba(201,168,76,.2);transition:background .3s;}
+.ob-dot.done{background:var(--gold,#c9a84c);}
+.ob-q{font-size:.92rem;font-weight:700;color:var(--t1);margin-bottom:1rem;line-height:1.4;}
+.ob-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.8rem;}
+.ob-opt{background:rgba(255,255,255,.04);border:1.5px solid rgba(201,168,76,.2);
+  border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;
+  font-family:inherit;font-size:.78rem;color:var(--t1);transition:all .15s;display:flex;
+  flex-direction:column;align-items:center;gap:4px;}
+.ob-opt:hover{background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.5);}
+.ob-opt.sel{background:rgba(201,168,76,.15);border-color:var(--gold,#c9a84c);}
+.ob-opt-emoji{font-size:1.4rem;}
+.ob-skip-q{background:none;border:none;color:var(--t3);font-size:.72rem;cursor:pointer;
+  padding:0;font-family:inherit;text-decoration:underline;align-self:center;margin-bottom:.6rem;}
+.ob-skip-q:hover{color:var(--t1);}
+.ob-next{width:100%;background:var(--gold,#c9a84c);color:#060b18;border:none;
+  border-radius:10px;padding:10px;font-family:inherit;font-size:.84rem;
+  font-weight:700;cursor:pointer;margin-top:4px;transition:opacity .2s;}
+.ob-next:hover{opacity:.88;}
+</style>
+
 <button id="vx-btn" onclick="vxToggle()" title="Hablar con veraxIA">💬</button>
 
 <div id="vx-panel">
@@ -1125,6 +1154,17 @@ async function sendMsg(){var input=document.getElementById('chatInput');var text
     <div>✦ verax<span style="color:#C9A96E">IA</span> <span>— en línea</span></div>
     <button id="vx-close" onclick="vxToggle()">✕</button>
   </div>
+
+  <!-- ONBOARDING EMOCIONAL -->
+  <div id="vx-ob">
+    <button class="ob-skip-all" onclick="obSkipAll()">Omitir todo y comenzar →</button>
+    <div class="ob-progress" id="ob-prog"></div>
+    <div class="ob-q" id="ob-q"></div>
+    <div class="ob-opts" id="ob-opts"></div>
+    <button class="ob-skip-q" onclick="obSkipQ()">Omitir esta pregunta →</button>
+    <button class="ob-next" id="ob-next" onclick="obNext()">Continuar →</button>
+  </div>
+  <!-- FIN ONBOARDING -->
   <div id="vx-msgs"></div>
   <div id="vx-typing">veraxIA está escribiendo…</div>
   <div id="vx-form">
@@ -1139,7 +1179,8 @@ async function sendMsg(){var input=document.getElementById('chatInput');var text
   const msgs=document.getElementById('vx-msgs');
   const input=document.getElementById('vx-input');
   const typing=document.getElementById('vx-typing');
-  let userId='web_'+Math.random().toString(36).slice(2,10);
+  let userId=localStorage.getItem('vx_uid');
+  if(!userId){userId='web_'+Math.random().toString(36).slice(2,10);localStorage.setItem('vx_uid',userId);}
   let isOpen=false;
 
   function addMsg(text,isUser){
@@ -1153,7 +1194,13 @@ async function sendMsg(){var input=document.getElementById('chatInput');var text
   window.vxToggle=function(){
     isOpen=!isOpen;
     panel.classList.toggle('open',isOpen);
-    if(isOpen) input.focus();
+    if(isOpen){
+      if(!localStorage.getItem(OB_KEY) && msgs.children.length===0){
+        obIniciar();
+      } else {
+        input.focus();
+      }
+    }
   };
 
   window.vxSend=async function(){
@@ -1192,6 +1239,103 @@ async function sendMsg(){var input=document.getElementById('chatInput');var text
     },300);
     window.history.replaceState({},'','/');
   }
+
+// ── ONBOARDING ──────────────────────────────
+const OB_KEY = 'vx_ob_done';
+const PREGUNTAS = [
+  { id:'estado_inicial', q:'¿Cómo te sientes en este momento?',
+    opts:[{e:'😌',l:'Tranquilo/a'},{e:'😰',l:'Ansioso/a'},{e:'🔍',l:'Curioso/a'},{e:'🌫️',l:'Perdido/a'},{e:'⚡',l:'Con energía'}]},
+  { id:'busqueda_principal', q:'¿Qué buscas en veraxIA?',
+    opts:[{e:'💭',l:'Reflexionar ideas'},{e:'🫂',l:'Apoyo emocional'},{e:'📚',l:'Explorar filosofía'},{e:'🎯',l:'Claridad en decisiones'},{e:'🤝',l:'Acompañamiento'}]},
+  { id:'area_vida', q:'¿Qué área de tu vida quieres explorar?',
+    opts:[{e:'✨',l:'Propósito'},{e:'💛',l:'Relaciones'},{e:'💼',l:'Trabajo / Negocio'},{e:'🌱',l:'Crecimiento personal'},{e:'🙏',l:'Espiritualidad'}]},
+  { id:'estilo_conversacion', q:'¿Cómo prefieres que te hable veraxIA?',
+    opts:[{e:'🎯',l:'Directo/a'},{e:'🌊',l:'Reflexivo/a'},{e:'❓',l:'Con preguntas'},{e:'💡',l:'Con ejemplos'},{e:'🤗',l:'Como un amigo'}]},
+  { id:'frecuencia_estado', q:'¿Con qué frecuencia te sientes así?',
+    opts:[{e:'📅',l:'Solo esta semana'},{e:'🔄',l:'Con frecuencia'},{e:'⚙️',l:'Casi siempre'},{e:'🌟',l:'Es algo nuevo para mí'}]},
+];
+let obStep = 0;
+let obRespuestas = {};
+let obSeleccion = null;
+
+function obMostrarPregunta(idx) {
+  const p = PREGUNTAS[idx];
+  document.getElementById('ob-q').textContent = p.q;
+  // Progreso
+  const prog = document.getElementById('ob-prog');
+  prog.innerHTML = PREGUNTAS.map((_,i)=>
+    `<div class="ob-dot ${i<=idx?'done':''}"></div>`).join('');
+  // Opciones
+  obSeleccion = null;
+  document.getElementById('ob-opts').innerHTML = p.opts.map(o=>
+    `<button class="ob-opt" onclick="obSeleccionar(this,'${o.l}')">
+      <span class="ob-opt-emoji">${o.e}</span>${o.l}
+    </button>`).join('');
+  // Botón
+  const nextBtn = document.getElementById('ob-next');
+  nextBtn.textContent = idx < PREGUNTAS.length-1 ? 'Continuar →' : 'Comenzar conversación ✨';
+}
+
+function obSeleccionar(el, valor) {
+  document.querySelectorAll('.ob-opt').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  obSeleccion = valor;
+}
+
+function obSkipQ() {
+  obRespuestas[PREGUNTAS[obStep].id] = 'omitido';
+  obSiguiente();
+}
+
+function obSkipAll() {
+  PREGUNTAS.forEach(p=>{ if(!obRespuestas[p.id]) obRespuestas[p.id]='omitido'; });
+  obFinalizar();
+}
+
+function obNext() {
+  if (obSeleccion) obRespuestas[PREGUNTAS[obStep].id] = obSeleccion;
+  else obRespuestas[PREGUNTAS[obStep].id] = 'omitido';
+  obSiguiente();
+}
+
+function obSiguiente() {
+  obStep++;
+  if (obStep < PREGUNTAS.length) {
+    obMostrarPregunta(obStep);
+  } else {
+    obFinalizar();
+  }
+}
+
+async function obFinalizar() {
+  localStorage.setItem(OB_KEY, '1');
+  // Guardar en backend
+  try {
+    await fetch('/api/onboarding', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'include',
+      body:JSON.stringify({user_id:userId, ...obRespuestas})
+    });
+  } catch(e) {}
+  // Mostrar chat
+  document.getElementById('vx-ob').classList.remove('active');
+  document.getElementById('vx-msgs').style.display='flex';
+  document.getElementById('vx-typing').style.display='none';
+  document.getElementById('vx-form').style.display='flex';
+  setTimeout(()=>addMsg('Hola 🤍 Ya sé un poco más sobre ti. ¿En qué te acompaño hoy?',false),300);
+}
+
+function obIniciar() {
+  obStep=0; obRespuestas={};
+  document.getElementById('vx-ob').classList.add('active');
+  document.getElementById('vx-msgs').style.display='none';
+  document.getElementById('vx-typing').style.display='none';
+  document.getElementById('vx-form').style.display='none';
+  obMostrarPregunta(0);
+}
+// ── FIN ONBOARDING ───────────────────────────
+
 })();
 </script>
 <!-- ====== FIN CHAT WIDGET ====== -->        
