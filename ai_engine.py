@@ -43,7 +43,9 @@ def detectar_emocion(texto: str) -> str:
             temperature=0,
             max_tokens=10
         )
-        return r.choices[0].message.content.strip()
+        raw = r.choices[0].message.content.strip()
+        # Limpiar punto final y espacios que GPT a veces agrega
+        return raw.rstrip('.').strip()
     except:
         return ""
 
