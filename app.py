@@ -464,6 +464,97 @@ def admin_perfiles():
         return jsonify({"error": str(e)}), 500
 
 
+
+
+@app.route("/api/onboarding", methods=["POST"])
+def api_onboarding_save():
+    """Guarda respuestas del onboarding emocional."""
+    try:
+        data = request.get_json() or {}
+        user_id   = str(data.get("user_id", ""))[:80]
+        estado    = str(data.get("estado_inicial", "omitido"))[:100]
+        busqueda  = str(data.get("busqueda_principal", "omitido"))[:100]
+        area      = str(data.get("area_vida", "omitido"))[:100]
+        estilo    = str(data.get("estilo_conversacion", "omitido"))[:100]
+        frecuencia= str(data.get("frecuencia_estado", "omitido"))[:100]
+
+        if not user_id:
+            return jsonify({"error": "user_id requerido"}), 400
+
+        con, cur = get_conn()
+        # Migración segura de columnas
+        for col in ["estado_inicial TEXT DEFAULT ''",
+                    "busqueda_principal TEXT DEFAULT ''",
+                    "area_vida TEXT DEFAULT ''",
+                    "estilo_conversacion TEXT DEFAULT ''",
+                    "frecuencia_estado TEXT DEFAULT ''",
+                    "onboarding_completado BOOLEAN DEFAULT FALSE"]:
+            try:
+                cur.execute(f"ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS {col}")
+            except Exception:
+                pass
+        con.commit()
+
+        cur.execute("""
+            INSERT INTO user_profiles
+              (user_id, estado_inicial, busqueda_principal, area_vida,
+               estilo_conversacion, frecuencia_estado, onboarding_completado)
+            VALUES (%s,%s,%s,%s,%s,%s,TRUE)
+            ON CONFLICT (user_id) DO UPDATE SET
+              estado_inicial       = EXCLUDED.estado_inicial,
+              busqueda_principal   = EXCLUDED.busqueda_principal,
+              area_vida            = EXCLUDED.area_vida,
+              estilo_conversacion  = EXCLUDED.estilo_conversacion,
+              frecuencia_estado    = EXCLUDED.frecuencia_estado,
+              onboarding_completado = TRUE,
+              ultima_actualizacion = CURRENT_TIMESTAMP
+        """, (user_id, estado, busqueda, area, estilo, frecuencia))
+        con.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/onboarding/stats", methods=["GET"])
+def api_onboarding_stats():
+    """Métricas de onboarding para el panel de audiencia."""
+    email = get_email_from_request()
+    if email != ADMIN_EMAIL:
+        return jsonify({"error": "No autorizado"}), 403
+    try:
+        con, cur = get_conn()
+
+        def contar(col):
+            try:
+                cur.execute(f"""
+                    SELECT {col}, COUNT(*) FROM user_profiles
+                    WHERE {col} IS NOT NULL AND {col} != '' AND {col} != 'omitido'
+                    GROUP BY {col} ORDER BY COUNT(*) DESC
+                """)
+                return [{{"valor": r[0], "total": r[1]}} for r in cur.fetchall()]
+            except Exception:
+                return []
+
+        try:
+            cur.execute("SELECT COUNT(*) FROM user_profiles WHERE onboarding_completado = TRUE")
+            completados = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM user_profiles WHERE onboarding_completado IS NULL OR onboarding_completado = FALSE")
+            sin_onboarding = cur.fetchone()[0]
+        except Exception:
+            completados = sin_onboarding = 0
+
+        return jsonify({{
+            "estados":    contar("estado_inicial"),
+            "busquedas":  contar("busqueda_principal"),
+            "areas":      contar("area_vida"),
+            "estilos":    contar("estilo_conversacion"),
+            "frecuencias":contar("frecuencia_estado"),
+            "completados":    completados,
+            "sin_onboarding": sin_onboarding,
+        }})
+    except Exception as e:
+        return jsonify({{"error": str(e)}}), 500
+
 @app.route("/admin/audiencia/pagina", methods=["GET"])
 def admin_audiencia_pagina():
     email = get_email_from_request()
