@@ -1195,9 +1195,12 @@ async function sendMsg(){var input=document.getElementById('chatInput');var text
     isOpen=!isOpen;
     panel.classList.toggle('open',isOpen);
     if(isOpen){
-      if(!localStorage.getItem(OB_KEY) && msgs.children.length===0){
+      const vieneDelLogin=new URLSearchParams(window.location.search).get('chat')==='open';
+      if(!localStorage.getItem(OB_KEY) && msgs.children.length===0 && !vieneDelLogin){
         obIniciar();
       } else {
+        // Si viene del login, marcar onboarding como visto para no interrumpir
+        if(vieneDelLogin) localStorage.setItem(OB_KEY,'1');
         input.focus();
       }
     }
@@ -1233,7 +1236,7 @@ async function sendMsg(){var input=document.getElementById('chatInput');var text
     setTimeout(()=>{
       vxToggle();
       const saludo=nombre
-        ?'¡Hola '+nombre+'! Bienvenida de vuelta 🤍 ¿En qué te acompaño hoy?'
+        ?'¡Hola, '+nombre+'! Qué bueno verte de vuelta 🤍 ¿En qué te acompaño hoy?'
         :'Hola 🤍 ¿En qué te acompaño hoy?';
       setTimeout(()=>addMsg(saludo,false),400);
     },300);
