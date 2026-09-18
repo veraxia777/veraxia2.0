@@ -1200,5 +1200,20 @@ async function sendMsg(){var input=document.getElementById('chatInput');var text
   <a href="https://g.page/r/CXUR2S31tJSxEBM/review" target="_blank" rel="noopener">⭐ ¿Fue útil esta conversación? Cuéntalo en Google</a>
   <button onclick="document.getElementById('review-banner').classList.remove('visible')">✕</button>
 </div>
+
+<script>
+// UTM — Captura origen de redes sociales y lo agrega a los links de registro
+(function(){
+  const utm = new URLSearchParams(window.location.search).get('utm_source');
+  if (!utm) return;
+  sessionStorage.setItem('vx_utm', utm);
+  // Agregar utm a todos los links de registro
+  document.querySelectorAll('a[href*="/registro"]').forEach(a => {
+    const url = new URL(a.href);
+    url.searchParams.set('utm_source', utm);
+    a.href = url.toString();
+  });
+})();
+</script>
 </body>
 </html>
