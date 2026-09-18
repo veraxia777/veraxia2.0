@@ -464,6 +464,14 @@ def admin_perfiles():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/admin/audiencia/pagina", methods=["GET"])
+def admin_audiencia_pagina():
+    email = get_email_from_request()
+    if email != ADMIN_EMAIL:
+        return redirect("/login")
+    return render_template("audiencia.html")
+
+
 @app.route("/admin/audiencia", methods=["GET"])
 def admin_audiencia():
     email = get_email_from_request()
